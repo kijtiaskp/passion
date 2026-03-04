@@ -1,0 +1,70 @@
+/* ─── App Layout ─────────────────────────────────── */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-main {
+  flex: 1;
+  margin-left: 200px;
+  min-height: 100vh;
+}
+
+/* ─── Sidebar ─────────────────────────────────────── */
+.app-nav {
+  width: 200px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  padding: 0;
+}
+
+.nav-logo {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 4px;
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  color: var(--muted);
+  text-decoration: none;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  transition: color 0.15s, background 0.15s;
+  border-left: 2px solid transparent;
+  margin: 1px 0;
+}
+.nav-item:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.03);
+}
+.nav-item.active {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  background: rgba(0, 255, 136, 0.05);
+}
+
+/* ─── Responsive ─────────────────────────────────── */
+@media (max-width: 768px) {
+  .app-nav { width: 56px; }
+  .nav-logo,
+  .nav-item span { display: none; }
+  .app-main { margin-left: 56px; }
+  .nav-item { justify-content: center; padding: 14px; }
+}

@@ -1,0 +1,42 @@
+:root {
+  --bg:       #09090f;
+  --surface:  #111118;
+  --border:   #1c1c2e;
+  --accent:   #00ff88;
+  --accent2:  #00c9ff;
+  --text:     #e8e8f0;
+  --muted:    #555570;
+  --danger:   #ff4466;
+  --warn:     #ffaa00;
+  --purple:   #b46eff;
+}
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html { font-size: 14px; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans Thai', 'Inter', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Subtle grid background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
