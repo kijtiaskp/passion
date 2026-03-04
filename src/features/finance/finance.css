@@ -1,30 +1,321 @@
-.placeholder-container {
+/* ─── Container ─────────────────────────────────── */
+.fn-container {
+  position: relative;
+  z-index: 1;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+/* ─── Header ─────────────────────────────────────── */
+.fn-header {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 60vh;
-  gap: 16px;
-  color: var(--muted);
+  justify-content: space-between;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
 }
 
-.placeholder-icon {
-  opacity: 0.3;
-  transform: scale(3);
-  margin-bottom: 24px;
-}
-
-.placeholder-title {
+.fn-logo {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 28px;
+  font-size: 20px;
   font-weight: 700;
-  letter-spacing: 4px;
+  letter-spacing: 2px;
   color: var(--text);
-  opacity: 0.4;
+}
+.fn-logo span { color: var(--accent); }
+
+.fn-loading {
+  text-align: center;
+  padding: 64px 20px;
+  color: var(--muted);
+  font-size: 13px;
+  font-family: 'IBM Plex Mono', monospace;
 }
 
-.placeholder-desc {
+/* ─── Income ─────────────────────────────────────── */
+.fn-income {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.fn-income-item {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fn-income-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.fn-income-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.fn-income-value:hover { color: var(--accent2); }
+
+/* ─── Stats / Summary ───────────────────────────── */
+.fn-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.fn-stats .stat-card .value.danger { color: var(--danger); }
+
+/* ─── Section ────────────────────────────────────── */
+.fn-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.fn-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.fn-section-header h3 {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text);
+}
+
+.fn-section-total {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent2);
+}
+
+/* ─── Table ──────────────────────────────────────── */
+.fn-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 12px;
+}
+
+.fn-table thead th {
+  text-align: left;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
   color: var(--muted);
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.fn-table tbody tr {
+  border-bottom: 1px solid rgba(30, 30, 46, 0.8);
+  transition: background 0.1s;
+}
+.fn-table tbody tr:hover { background: rgba(255, 255, 255, 0.025); }
+.fn-table tbody tr:last-child { border-bottom: none; }
+
+.fn-table td {
+  padding: 8px 10px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.fn-row-paid { opacity: 0.4; }
+.fn-row-paid td { text-decoration: line-through; }
+
+/* ─── Editable Cells ─────────────────────────────── */
+.fn-editable {
+  cursor: pointer;
+  color: var(--text);
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+.fn-editable:hover { background: rgba(255, 255, 255, 0.05); }
+
+.fn-editable.fn-num {
+  color: var(--accent2);
+  font-weight: 600;
+}
+
+.fn-inline-input {
+  height: 30px;
+  background: var(--bg);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  padding: 0 8px;
+  outline: none;
+  width: 100%;
+  max-width: 160px;
+  box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.08);
+}
+
+/* Hide number input spinners */
+.fn-inline-input[type="number"]::-webkit-inner-spin-button,
+.fn-inline-input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.fn-inline-input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* ─── Checkbox ───────────────────────────────────── */
+.fn-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* ─── Add Row ────────────────────────────────────── */
+.fn-add-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.fn-add-row input,
+.fn-add-row select {
+  height: 34px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  padding: 0 10px;
+  outline: none;
+  flex: 1;
+  min-width: 80px;
+  transition: border-color 0.15s;
+}
+.fn-add-row input:focus,
+.fn-add-row select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.08);
+}
+.fn-add-row select option { background: #0f0f1a; }
+
+.fn-add-row-compact { flex-wrap: nowrap; }
+
+/* ─── Buttons ────────────────────────────────────── */
+.fn-btn-add {
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--muted);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  width: 100%;
+  text-align: center;
+}
+.fn-btn-add:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(0, 255, 136, 0.04);
+}
+
+.fn-btn-save {
+  height: 34px;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  padding: 0 14px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.fn-btn-save:hover { background: #00e87a; }
+
+.fn-btn-cancel {
+  height: 34px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 6px;
+  padding: 0 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.fn-btn-cancel:hover { border-color: var(--danger); color: var(--danger); }
+
+.fn-delete-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 16px;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+}
+.fn-delete-btn:hover { color: var(--danger); background: rgba(255, 68, 102, 0.08); }
+
+/* ─── Side by Side ───────────────────────────────── */
+.fn-side-by-side {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.fn-section-half { margin-bottom: 0; }
+
+/* ─── Responsive ─────────────────────────────────── */
+@media (max-width: 768px) {
+  .fn-container { padding: 24px 16px 64px; }
+  .fn-income { flex-direction: column; }
+  .fn-stats { grid-template-columns: 1fr; }
+  .fn-side-by-side { grid-template-columns: 1fr; }
+  .fn-side-by-side .fn-section-half { margin-bottom: 16px; }
+  .fn-add-row { flex-wrap: wrap; }
+  .fn-add-row input,
+  .fn-add-row select { min-width: calc(50% - 4px); }
+  .fn-income-item { flex-direction: column; align-items: flex-start; gap: 6px; }
 }
