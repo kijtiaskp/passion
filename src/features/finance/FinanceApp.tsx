@@ -1,6 +1,7 @@
 import { useFinance } from './api/use-finance'
 import { SummaryBar } from './components/SummaryBar'
 import { IncomeSection } from './components/IncomeSection'
+import { BalanceSection } from './components/BalanceSection'
 import { CreditCardSection } from './components/CreditCardSection'
 import { ExpenseSection } from './components/ExpenseSection'
 import { DebtSection } from './components/DebtSection'
@@ -49,6 +50,14 @@ export function FinanceApp() {
             onUpdate={finance.updateIncome}
           />
 
+          <BalanceSection
+            balances={data.bankBalances ?? []}
+            expenses={data.expenses}
+            onAdd={finance.addBalance}
+            onUpdate={finance.updateBalance}
+            onDelete={finance.deleteBalance}
+          />
+
           <SummaryBar data={data} />
 
           <CreditCardSection
@@ -60,9 +69,14 @@ export function FinanceApp() {
 
           <ExpenseSection
             expenses={data.expenses}
+            bills={data.bills ?? []}
+            bankAccounts={data.bankBalances ?? []}
             onAdd={finance.addExpense}
             onUpdate={finance.updateExpense}
+            onUpdateByBill={finance.updateExpensesByBill}
             onDelete={finance.deleteExpense}
+            onUpdateBill={finance.updateBill}
+            onDeleteBill={finance.deleteBill}
           />
 
           <div className="fn-side-by-side">

@@ -11,8 +11,10 @@ export function SummaryBar({ data }: Props) {
   const totalSavings = data.savings.reduce((s, sv) => s + sv.amount, 0)
   const totalLoans = data.homeLoan.reduce((s, l) => s + l.amount, 0)
 
+  const totalBankBalances = (data.bankBalances ?? []).reduce((s, b) => s + b.amount, 0)
+
   const totalOut = totalCreditCards + totalExpenses + totalDebts + totalSavings + totalLoans
-  const totalIn = data.income.salary + data.income.carryOver
+  const totalIn = data.income.salary + data.income.carryOver + totalBankBalances
   const remaining = totalIn - totalOut
 
   return (

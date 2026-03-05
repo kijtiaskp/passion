@@ -100,7 +100,7 @@ function EditableCell({ value, onChange }: { value: string; onChange: (v: string
   return <span className="fn-editable" onClick={() => setEditing(true)}>{value}</span>
 }
 
-function EditableNum({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+function EditableNum({ value, onChange, decimal = true }: { value: number; onChange: (v: number) => void; decimal?: boolean }) {
   const [editing, setEditing] = useState(false)
   if (editing) {
     return (
@@ -116,7 +116,7 @@ function EditableNum({ value, onChange }: { value: number; onChange: (v: number)
   }
   return (
     <span className="fn-editable fn-num" onClick={() => setEditing(true)}>
-      {value.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+      {decimal ? value.toLocaleString('th-TH', { minimumFractionDigits: 2 }) : String(value)}
     </span>
   )
 }
