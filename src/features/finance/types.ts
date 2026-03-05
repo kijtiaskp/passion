@@ -1,10 +1,20 @@
+export interface Subscription {
+  id: number
+  name: string
+  amount: number
+  billingDay: number
+}
+
 export interface CreditCard {
   id: number
   name: string
+  creditLimit: number
+  used: number
   willPay: number
   min: number
   max: number
   subscriptionTotal: number
+  subscriptions?: Subscription[]
 }
 
 export type TxType = 'expense' | 'income' | 'transfer'

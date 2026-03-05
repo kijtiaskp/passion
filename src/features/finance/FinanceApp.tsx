@@ -43,6 +43,16 @@ export function FinanceApp() {
       {loading ? (
         <div className="fn-loading">กำลังโหลด...</div>
       ) : (
+        <>
+        <div style={{ marginBottom: 16 }}>
+          <CreditCardSection
+            cards={data.creditCards}
+            onAdd={finance.addCreditCard}
+            onUpdate={finance.updateCreditCard}
+            onDelete={finance.deleteCreditCard}
+          />
+        </div>
+
         <div className="fn-layout">
           <div className="fn-layout-left">
             <ExpenseSection
@@ -75,13 +85,6 @@ export function FinanceApp() {
 
             <SummaryBar data={data} />
 
-            <CreditCardSection
-              cards={data.creditCards}
-              onAdd={finance.addCreditCard}
-              onUpdate={finance.updateCreditCard}
-              onDelete={finance.deleteCreditCard}
-            />
-
             <div className="fn-side-by-side">
               <DebtSection
                 debts={data.debts}
@@ -105,6 +108,7 @@ export function FinanceApp() {
             />
           </div>
         </div>
+        </>
       )}
     </div>
   )

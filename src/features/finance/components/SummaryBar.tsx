@@ -23,12 +23,11 @@ function useFinanceSummary(data: FinanceMonth) {
   const txExpense = data.expenses
     .filter(e => (e.txType || 'expense') === 'expense')
     .reduce((s, e) => s + e.amount, 0)
-  const totalCreditCards = data.creditCards.reduce((s, c) => s + c.willPay, 0)
   const totalDebtsOwe = data.debts
     .filter(d => !d.paid && (d.direction || 'owe') === 'owe')
     .reduce((s, d) => s + d.amount, 0)
   const totalLoans = data.homeLoan.reduce((s, l) => s + l.amount, 0)
-  const totalExpense = txExpense + totalCreditCards + totalDebtsOwe + totalLoans
+  const totalExpense = txExpense + totalDebtsOwe + totalLoans
 
   const totalSavings = data.savings.reduce((s, sv) => s + sv.amount, 0)
   const totalDebtsLent = data.debts

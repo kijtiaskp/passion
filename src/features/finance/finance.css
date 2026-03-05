@@ -354,6 +354,58 @@
   display: block;
 }
 
+.fn-editable.fn-num.fn-num-danger {
+  color: #ef4444;
+}
+
+.fn-cc-table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.fn-cc-table th:nth-child(n+2),
+.fn-cc-table td:nth-child(n+2) {
+  text-align: right;
+}
+
+.fn-cc-table tfoot td:nth-child(n+2) {
+  text-align: right;
+}
+
+.fn-total-row td {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  font-weight: 600;
+}
+
+.fn-sub-row td {
+  padding-top: 2px;
+  padding-bottom: 2px;
+  border-top: none;
+  opacity: 0.75;
+  font-size: 0.85em;
+}
+
+.fn-sub-indent {
+  padding-left: 24px !important;
+  color: var(--text-muted, #999);
+}
+
+.fn-sub-detail {
+  color: var(--text-muted, #999);
+  font-size: 0.85em;
+}
+
+.fn-btn-add-sub {
+  font-size: 0.8em;
+  opacity: 0.6;
+  padding: 2px 8px;
+}
+
+.fn-sub-add {
+  gap: 6px;
+}
+
 .fn-inline-input {
   height: 32px;
   background: var(--bg);
