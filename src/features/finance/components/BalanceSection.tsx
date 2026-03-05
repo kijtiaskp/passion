@@ -11,7 +11,7 @@ interface Props {
   onDelete: (id: number) => void
 }
 
-const GROUP_ORDER: BalanceGroup[] = ['bank', 'ewallet', 'cash']
+const GROUP_ORDER: BalanceGroup[] = ['bank', 'ewallet', 'cash', 'pocket']
 
 export function BalanceSection({ balances, expenses, onAdd, onUpdate, onDelete }: Props) {
   const [adding, setAdding] = useState(false)

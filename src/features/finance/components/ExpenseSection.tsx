@@ -3,7 +3,7 @@ import type { Expense, BankBalance, BillInfo, BalanceGroup, TxType } from '../ty
 import { BALANCE_GROUP_LABELS, TX_TYPE_LABELS, signedAmount } from '../types'
 import { EditableCell, EditableNum } from './CreditCardSection'
 
-const GROUP_ORDER: BalanceGroup[] = ['bank', 'ewallet', 'cash']
+const GROUP_ORDER: BalanceGroup[] = ['bank', 'ewallet', 'cash', 'pocket']
 
 function AccountSelect({ value, bankAccounts, onChange }: { value: string; bankAccounts: BankBalance[]; onChange: (v: string) => void }) {
   const grouped = GROUP_ORDER.map(g => ({
@@ -156,7 +156,10 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
     items: expenses.filter(e => e.billId === bill.id),
   })).sort((a, b) => sortDesc(a.bill, b.bill))
 
-  const renderRow = (exp: Expense, showAccount: boolean, showDateTime: boolean) => {
+  const [expanded, setExpanded] = useState<Record<number, boolean>>({})
+  const toggleExpand = (id: number) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }))
+
+  const renderBillRow = (exp: Expense) => {
     const tx = exp.txType || 'expense'
     const totalClass = tx === 'income' ? 'fn-income' : tx === 'transfer' ? 'fn-transfer' : 'fn-outcome'
     const prefix = tx === 'income' ? '+' : tx === 'expense' ? '-' : ''
@@ -179,28 +182,6 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
         <td className={`fn-expense-total ${totalClass}`}>
           {prefix}{exp.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
         </td>
-        {showAccount && (
-          <td>
-            {tx === 'transfer' ? (
-              <span className="fn-transfer-accounts">
-                <AccountSelect value={exp.bank} bankAccounts={bankAccounts} onChange={v => onUpdate(exp.id, { bank: v })} />
-                <span className="fn-transfer-arrow">→</span>
-                <AccountSelect value={exp.bankTo || ''} bankAccounts={bankAccounts} onChange={v => onUpdate(exp.id, { bankTo: v })} />
-              </span>
-            ) : (
-              <AccountSelect value={exp.bank} bankAccounts={bankAccounts} onChange={v => {
-                const account = bankAccounts.find(b => b.name === v)
-                onUpdate(exp.id, { bank: v, type: account?.group || '' })
-              }} />
-            )}
-          </td>
-        )}
-        {showDateTime && (
-          <td className="fn-expense-datetime">
-            <input type="date" className="fn-inline-date" value={exp.date || ''} onChange={e => onUpdate(exp.id, { date: e.target.value })} />
-            <input type="time" className="fn-inline-time" value={exp.time || ''} onChange={e => onUpdate(exp.id, { time: e.target.value })} />
-          </td>
-        )}
         <td>
           <button className="fn-delete-btn" onClick={() => onDelete(exp.id)}>×</button>
         </td>
@@ -208,7 +189,79 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
     )
   }
 
-  const tableHead = (showAccount: boolean, showDateTime: boolean) => (
+  const renderCompactRow = (exp: Expense) => {
+    const tx = exp.txType || 'expense'
+    const totalClass = tx === 'income' ? 'fn-income' : tx === 'transfer' ? 'fn-transfer' : 'fn-outcome'
+    const prefix = tx === 'income' ? '+' : tx === 'expense' ? '-' : ''
+    const isOpen = expanded[exp.id] ?? false
+    const bankLabel = tx === 'transfer'
+      ? `${exp.bank || '—'} → ${exp.bankTo || '—'}`
+      : exp.bank || ''
+
+    return (
+      <div key={exp.id} className="fn-compact-row">
+        <div className="fn-compact-summary" onClick={() => toggleExpand(exp.id)}>
+          <span className={`fn-compact-type fn-compact-type-${tx}`}>{TX_TYPE_LABELS[tx]}</span>
+          <span className="fn-compact-name">{exp.name}</span>
+          {bankLabel && <span className="fn-compact-bank">{bankLabel}</span>}
+          <span className={`fn-compact-amount ${totalClass}`}>
+            {prefix}{exp.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+          </span>
+          <span className="fn-compact-date">{exp.date} {exp.time}</span>
+          <span className="fn-compact-chevron">{isOpen ? '▾' : '▸'}</span>
+        </div>
+        {isOpen && (
+          <div className="fn-compact-detail">
+            <div className="fn-compact-field">
+              <label>ประเภท</label>
+              <select className="fn-inline-select fn-tx-type-select" value={tx} onChange={e => onUpdate(exp.id, { txType: e.target.value as TxType })}>
+                {Object.entries(TX_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              </select>
+            </div>
+            <div className="fn-compact-field">
+              <label>รายการ</label>
+              <EditableCell value={exp.name} onChange={v => onUpdate(exp.id, { name: v })} />
+            </div>
+            <div className="fn-compact-field">
+              <label>จำนวน</label>
+              <EditableNum value={exp.qty || 1} onChange={v => handleQtyChange(exp.id, exp, v)} decimal={false} />
+            </div>
+            <div className="fn-compact-field">
+              <label>ราคา</label>
+              <EditableNum value={exp.price || exp.amount} onChange={v => handlePriceChange(exp.id, exp, v)} />
+            </div>
+            <div className="fn-compact-field">
+              <label>บัญชี</label>
+              {tx === 'transfer' ? (
+                <span className="fn-transfer-accounts">
+                  <AccountSelect value={exp.bank} bankAccounts={bankAccounts} onChange={v => onUpdate(exp.id, { bank: v })} />
+                  <span className="fn-transfer-arrow">→</span>
+                  <AccountSelect value={exp.bankTo || ''} bankAccounts={bankAccounts} onChange={v => onUpdate(exp.id, { bankTo: v })} />
+                </span>
+              ) : (
+                <AccountSelect value={exp.bank} bankAccounts={bankAccounts} onChange={v => {
+                  const account = bankAccounts.find(b => b.name === v)
+                  onUpdate(exp.id, { bank: v, type: account?.group || '' })
+                }} />
+              )}
+            </div>
+            <div className="fn-compact-field">
+              <label>วันที่/เวลา</label>
+              <span className="fn-expense-datetime">
+                <input type="date" className="fn-inline-date" value={exp.date || ''} onChange={e => onUpdate(exp.id, { date: e.target.value })} />
+                <input type="time" className="fn-inline-time" value={exp.time || ''} onChange={e => onUpdate(exp.id, { time: e.target.value })} />
+              </span>
+            </div>
+            <div className="fn-compact-field">
+              <button className="fn-delete-btn" onClick={() => onDelete(exp.id)}>×</button>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  const billTableHead = (
     <thead>
       <tr>
         <th>ประเภท</th>
@@ -216,8 +269,6 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
         <th>จำนวน</th>
         <th>ราคา</th>
         <th>รวม</th>
-        {showAccount && <th>บัญชี</th>}
-        {showDateTime && <th>วันที่/เวลา</th>}
         <th></th>
       </tr>
     </thead>
@@ -233,10 +284,9 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
       </div>
 
       {ungrouped.length > 0 && (
-        <table className="fn-table">
-          {tableHead(true, true)}
-          <tbody>{ungrouped.map(exp => renderRow(exp, true, true))}</tbody>
-        </table>
+        <div className="fn-compact-list">
+          {ungrouped.map(exp => renderCompactRow(exp))}
+        </div>
       )}
 
       {billList.map(({ bill, items }) => {
@@ -265,8 +315,8 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
               <>
                 <BillDetail bill={bill} onUploadImage={handleUploadImage} />
                 <table className="fn-table">
-                  {tableHead(false, false)}
-                  <tbody>{items.map(exp => renderRow(exp, false, false))}</tbody>
+                  {billTableHead}
+                  <tbody>{items.map(exp => renderBillRow(exp))}</tbody>
                 </table>
               </>
             )}

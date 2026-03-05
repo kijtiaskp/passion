@@ -91,12 +91,13 @@ export interface LoanItem {
   amount: number
 }
 
-export type BalanceGroup = 'bank' | 'ewallet' | 'cash'
+export type BalanceGroup = 'bank' | 'ewallet' | 'cash' | 'pocket'
 
 export const BALANCE_GROUP_LABELS: Record<BalanceGroup, string> = {
   bank: 'บัญชีธนาคาร',
   ewallet: 'E-Wallet',
   cash: 'เงินสด',
+  pocket: 'Pocket',
 }
 
 export interface BankBalance {
