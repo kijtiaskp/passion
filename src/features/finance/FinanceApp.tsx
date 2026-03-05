@@ -43,64 +43,68 @@ export function FinanceApp() {
       {loading ? (
         <div className="fn-loading">กำลังโหลด...</div>
       ) : (
-        <>
-          <IncomeSection
-            salary={data.income.salary}
-            carryOver={data.income.carryOver}
-            onUpdate={finance.updateIncome}
-          />
-
-          <BalanceSection
-            balances={data.bankBalances ?? []}
-            expenses={data.expenses}
-            onAdd={finance.addBalance}
-            onUpdate={finance.updateBalance}
-            onDelete={finance.deleteBalance}
-          />
-
-          <SummaryBar data={data} />
-
-          <CreditCardSection
-            cards={data.creditCards}
-            onAdd={finance.addCreditCard}
-            onUpdate={finance.updateCreditCard}
-            onDelete={finance.deleteCreditCard}
-          />
-
-          <ExpenseSection
-            expenses={data.expenses}
-            bills={data.bills ?? []}
-            bankAccounts={data.bankBalances ?? []}
-            onAdd={finance.addExpense}
-            onUpdate={finance.updateExpense}
-            onUpdateByBill={finance.updateExpensesByBill}
-            onDelete={finance.deleteExpense}
-            onUpdateBill={finance.updateBill}
-            onDeleteBill={finance.deleteBill}
-          />
-
-          <div className="fn-side-by-side">
-            <DebtSection
-              debts={data.debts}
-              onAdd={finance.addDebt}
-              onUpdate={finance.updateDebt}
-              onDelete={finance.deleteDebt}
-            />
-            <SavingSection
-              savings={data.savings}
-              onAdd={finance.addSaving}
-              onUpdate={finance.updateSaving}
-              onDelete={finance.deleteSaving}
+        <div className="fn-layout">
+          <div className="fn-layout-left">
+            <ExpenseSection
+              expenses={data.expenses}
+              bills={data.bills ?? []}
+              bankAccounts={data.bankBalances ?? []}
+              onAdd={finance.addExpense}
+              onUpdate={finance.updateExpense}
+              onUpdateByBill={finance.updateExpensesByBill}
+              onDelete={finance.deleteExpense}
+              onUpdateBill={finance.updateBill}
+              onDeleteBill={finance.deleteBill}
             />
           </div>
 
-          <HomeLoanSection
-            loans={data.homeLoan}
-            onAdd={finance.addLoan}
-            onUpdate={finance.updateLoan}
-            onDelete={finance.deleteLoan}
-          />
-        </>
+          <div className="fn-layout-right">
+            <IncomeSection
+              salary={data.income.salary}
+              carryOver={data.income.carryOver}
+              onUpdate={finance.updateIncome}
+            />
+
+            <BalanceSection
+              balances={data.bankBalances ?? []}
+              expenses={data.expenses}
+              onAdd={finance.addBalance}
+              onUpdate={finance.updateBalance}
+              onDelete={finance.deleteBalance}
+            />
+
+            <SummaryBar data={data} />
+
+            <CreditCardSection
+              cards={data.creditCards}
+              onAdd={finance.addCreditCard}
+              onUpdate={finance.updateCreditCard}
+              onDelete={finance.deleteCreditCard}
+            />
+
+            <div className="fn-side-by-side">
+              <DebtSection
+                debts={data.debts}
+                onAdd={finance.addDebt}
+                onUpdate={finance.updateDebt}
+                onDelete={finance.deleteDebt}
+              />
+              <SavingSection
+                savings={data.savings}
+                onAdd={finance.addSaving}
+                onUpdate={finance.updateSaving}
+                onDelete={finance.deleteSaving}
+              />
+            </div>
+
+            <HomeLoanSection
+              loans={data.homeLoan}
+              onAdd={finance.addLoan}
+              onUpdate={finance.updateLoan}
+              onDelete={finance.deleteLoan}
+            />
+          </div>
+        </div>
       )}
     </div>
   )

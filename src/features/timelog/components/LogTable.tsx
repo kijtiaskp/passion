@@ -133,15 +133,21 @@ export function LogTable({ logs, loading, selectedMonth, onMonthChange, onDelete
   }, [filtered])
 
   const exportCSV = () => {
-    const rows = [['Project', 'Task', 'Category', 'Start', 'End', 'Hours', 'Days(8h=1day)']]
-    filtered.forEach(l => rows.push([
-      `"${l.project || ''}"`, `"${l.task}"`, catLabels[l.cat as Category],
-      new Date(l.start).toLocaleString('th-TH'), new Date(l.end).toLocaleString('th-TH'),
-      String(l.hrs), formatDays(l.hrs),
-    ]))
+    const header = ['No.', 'Date', 'Type', 'Task', 'Manday', '']
+    const rows: string[][] = [header]
+    const sorted = [...filtered].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
+    sorted.forEach((l, i) => {
+      const date = new Date(l.start)
+      const dateStr = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+      const type = catLabels[l.cat as Category]
+      const task = `Work on ${l.project || ''}${l.task ? ' ' + l.task : ' (no comment provided)'}`
+      const manday = formatDays(l.hrs)
+      const hrs = String(l.hrs)
+      rows.push([String(i + 1), dateStr, type, task, manday, hrs])
+    })
     const a = document.createElement('a')
-    a.href = 'data:text/csv;charset=utf-8,\uFEFF' + rows.map(r => r.join(',')).join('\n')
-    a.download = `timelog_${new Date().toISOString().slice(0, 10)}.csv`
+    a.href = 'data:text/csv;charset=utf-8,\uFEFF' + rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n')
+    a.download = `timelog_${selectedMonth}.csv`
     a.click()
   }
 

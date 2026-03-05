@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { BankBalance, Expense, BalanceGroup } from '../types'
-import { BALANCE_GROUP_LABELS } from '../types'
+import { BALANCE_GROUP_LABELS, balanceImpact } from '../types'
 import { EditableCell, EditableNum } from './CreditCardSection'
 
 interface Props {
@@ -18,11 +18,10 @@ export function BalanceSection({ balances, expenses, onAdd, onUpdate, onDelete }
   const [form, setForm] = useState({ name: '', amount: 0, group: 'bank' as BalanceGroup })
   const total = balances.reduce((s, b) => s + b.amount, 0)
 
-  const spentByAccount = (name: string) =>
-    expenses.filter(e => e.bank === name).reduce((s, e) => s + e.amount, 0)
+  const accountImpact = (name: string) =>
+    expenses.reduce((s, e) => s + balanceImpact(e, name), 0)
 
-  const totalSpent = balances.reduce((s, b) => s + spentByAccount(b.name), 0)
-  const totalRemaining = total - totalSpent
+  const totalRemaining = balances.reduce((s, b) => s + b.amount + accountImpact(b.name), 0)
 
   const handleAdd = () => {
     if (!form.name) return
@@ -45,9 +44,7 @@ export function BalanceSection({ balances, expenses, onAdd, onUpdate, onDelete }
       </div>
 
       {grouped.map(({ group, label, items }) => {
-        const groupTotal = items.reduce((s, b) => s + b.amount, 0)
-        const groupSpent = items.reduce((s, b) => s + spentByAccount(b.name), 0)
-        const groupRemaining = groupTotal - groupSpent
+        const groupRemaining = items.reduce((s, b) => s + b.amount + accountImpact(b.name), 0)
         return (
           <div key={group} className="fn-balance-group">
             <div className="fn-balance-group-header">
@@ -62,15 +59,15 @@ export function BalanceSection({ balances, expenses, onAdd, onUpdate, onDelete }
                   <th>ชื่อบัญชี</th>
                   <th>กลุ่ม</th>
                   <th>ยอดตั้งต้น</th>
-                  <th>ใช้ไป</th>
+                  <th>เปลี่ยนแปลง</th>
                   <th>คงเหลือ</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
                 {items.map(item => {
-                  const spent = spentByAccount(item.name)
-                  const remaining = item.amount - spent
+                  const impact = accountImpact(item.name)
+                  const remaining = item.amount + impact
                   return (
                     <tr key={item.id}>
                       <td>
@@ -90,7 +87,7 @@ export function BalanceSection({ balances, expenses, onAdd, onUpdate, onDelete }
                       <td>
                         <EditableNum value={item.amount} onChange={v => onUpdate(item.id, { amount: v })} />
                       </td>
-                      <td className="fn-spent">{spent.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                      <td className="fn-spent">{impact.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
                       <td className={`fn-remaining ${remaining < 0 ? 'fn-remaining-danger' : ''}`}>
                         {remaining.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
                       </td>

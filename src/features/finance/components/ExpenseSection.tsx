@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
-import type { Expense, BankBalance, BillInfo, BalanceGroup } from '../types'
-import { BALANCE_GROUP_LABELS } from '../types'
+import type { Expense, BankBalance, BillInfo, BalanceGroup, TxType } from '../types'
+import { BALANCE_GROUP_LABELS, TX_TYPE_LABELS, signedAmount } from '../types'
 import { EditableCell, EditableNum } from './CreditCardSection'
 
 const GROUP_ORDER: BalanceGroup[] = ['bank', 'ewallet', 'cash']
@@ -105,8 +105,8 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
   const now = new Date()
   const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
   const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
-  const [form, setForm] = useState({ name: '', qty: 1, price: 0, bank: '', date: todayStr, time: timeStr })
-  const total = expenses.reduce((s, e) => s + e.amount, 0)
+  const [form, setForm] = useState({ name: '', qty: 1, price: 0, bank: '', date: todayStr, time: timeStr, txType: 'expense' as TxType })
+  const total = expenses.reduce((s, e) => s + signedAmount(e), 0)
 
   const handleUploadImage = async (billId: number, file: File) => {
     const formData = new FormData()
@@ -125,68 +125,93 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
   const handleAdd = () => {
     if (!form.name) return
     const account = bankAccounts.find(b => b.name === form.bank)
-    onAdd({ ...form, amount: form.qty * form.price, type: account?.group || '' })
+    onAdd({ ...form, amount: Math.abs(form.qty * form.price), type: account?.group || '' })
     const n = new Date()
     const d = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`
     const t = `${String(n.getHours()).padStart(2, '0')}:${String(n.getMinutes()).padStart(2, '0')}`
-    setForm({ name: '', qty: 1, price: 0, bank: '', date: d, time: t })
+    setForm({ name: '', qty: 1, price: 0, bank: '', date: d, time: t, txType: 'expense' })
     setAdding(false)
   }
 
   const handleQtyChange = (id: number, exp: Expense, qty: number) => {
-    onUpdate(id, { qty, amount: qty * exp.price })
+    onUpdate(id, { qty, amount: Math.abs(qty * exp.price) })
   }
 
   const handlePriceChange = (id: number, exp: Expense, price: number) => {
-    onUpdate(id, { price, amount: (exp.qty || 1) * price })
+    onUpdate(id, { price, amount: Math.abs((exp.qty || 1) * price) })
   }
 
   const [collapsed, setCollapsed] = useState<Record<number, boolean>>({})
   const toggleCollapse = (id: number) => setCollapsed(prev => ({ ...prev, [id]: !prev[id] }))
 
-  const ungrouped = expenses.filter(e => !e.billId)
+  const sortDesc = (a: { date?: string; time?: string }, b: { date?: string; time?: string }) => {
+    const da = a.date || '0000-00-00', db = b.date || '0000-00-00'
+    if (da !== db) return db.localeCompare(da)
+    return (b.time || '00:00').localeCompare(a.time || '00:00')
+  }
+
+  const ungrouped = expenses.filter(e => !e.billId).sort(sortDesc)
   const billList = (bills ?? []).map(bill => ({
     bill,
     items: expenses.filter(e => e.billId === bill.id),
-  }))
+  })).sort((a, b) => sortDesc(a.bill, b.bill))
 
-  const renderRow = (exp: Expense, showAccount: boolean, showDateTime: boolean) => (
-    <tr key={exp.id}>
-      <td>
-        <EditableCell value={exp.name} onChange={v => onUpdate(exp.id, { name: v })} />
-      </td>
-      <td>
-        <EditableNum value={exp.qty || 1} onChange={v => handleQtyChange(exp.id, exp, v)} decimal={false} />
-      </td>
-      <td>
-        <EditableNum value={exp.price || exp.amount} onChange={v => handlePriceChange(exp.id, exp, v)} />
-      </td>
-      <td className={`fn-expense-total ${exp.amount < 0 ? 'fn-discount' : ''}`}>
-        {exp.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
-      </td>
-      {showAccount && (
+  const renderRow = (exp: Expense, showAccount: boolean, showDateTime: boolean) => {
+    const tx = exp.txType || 'expense'
+    const totalClass = tx === 'income' ? 'fn-income' : tx === 'transfer' ? 'fn-transfer' : 'fn-outcome'
+    const prefix = tx === 'income' ? '+' : tx === 'expense' ? '-' : ''
+    return (
+      <tr key={exp.id}>
         <td>
-          <AccountSelect value={exp.bank} bankAccounts={bankAccounts} onChange={v => {
-            const account = bankAccounts.find(b => b.name === v)
-            onUpdate(exp.id, { bank: v, type: account?.group || '' })
-          }} />
+          <select className="fn-inline-select fn-tx-type-select" value={tx} onChange={e => onUpdate(exp.id, { txType: e.target.value as TxType })}>
+            {Object.entries(TX_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
         </td>
-      )}
-      {showDateTime && (
-        <td className="fn-expense-datetime">
-          <input type="date" className="fn-inline-date" value={exp.date || ''} onChange={e => onUpdate(exp.id, { date: e.target.value })} />
-          <input type="time" className="fn-inline-time" value={exp.time || ''} onChange={e => onUpdate(exp.id, { time: e.target.value })} />
+        <td>
+          <EditableCell value={exp.name} onChange={v => onUpdate(exp.id, { name: v })} />
         </td>
-      )}
-      <td>
-        <button className="fn-delete-btn" onClick={() => onDelete(exp.id)}>×</button>
-      </td>
-    </tr>
-  )
+        <td>
+          <EditableNum value={exp.qty || 1} onChange={v => handleQtyChange(exp.id, exp, v)} decimal={false} />
+        </td>
+        <td>
+          <EditableNum value={exp.price || exp.amount} onChange={v => handlePriceChange(exp.id, exp, v)} />
+        </td>
+        <td className={`fn-expense-total ${totalClass}`}>
+          {prefix}{exp.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+        </td>
+        {showAccount && (
+          <td>
+            {tx === 'transfer' ? (
+              <span className="fn-transfer-accounts">
+                <AccountSelect value={exp.bank} bankAccounts={bankAccounts} onChange={v => onUpdate(exp.id, { bank: v })} />
+                <span className="fn-transfer-arrow">→</span>
+                <AccountSelect value={exp.bankTo || ''} bankAccounts={bankAccounts} onChange={v => onUpdate(exp.id, { bankTo: v })} />
+              </span>
+            ) : (
+              <AccountSelect value={exp.bank} bankAccounts={bankAccounts} onChange={v => {
+                const account = bankAccounts.find(b => b.name === v)
+                onUpdate(exp.id, { bank: v, type: account?.group || '' })
+              }} />
+            )}
+          </td>
+        )}
+        {showDateTime && (
+          <td className="fn-expense-datetime">
+            <input type="date" className="fn-inline-date" value={exp.date || ''} onChange={e => onUpdate(exp.id, { date: e.target.value })} />
+            <input type="time" className="fn-inline-time" value={exp.time || ''} onChange={e => onUpdate(exp.id, { time: e.target.value })} />
+          </td>
+        )}
+        <td>
+          <button className="fn-delete-btn" onClick={() => onDelete(exp.id)}>×</button>
+        </td>
+      </tr>
+    )
+  }
 
   const tableHead = (showAccount: boolean, showDateTime: boolean) => (
     <thead>
       <tr>
+        <th>ประเภท</th>
         <th>รายการ</th>
         <th>จำนวน</th>
         <th>ราคา</th>
@@ -201,8 +226,10 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
   return (
     <div className="fn-section">
       <div className="fn-section-header">
-        <h3>รายจ่ายประจำเดือน</h3>
-        <span className="fn-section-total">{total.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</span>
+        <h3>รายการประจำเดือน</h3>
+        <span className={`fn-section-total ${total < 0 ? 'fn-outcome' : 'fn-income'}`}>
+          {total < 0 ? '' : '+'}{total.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+        </span>
       </div>
 
       {ungrouped.length > 0 && (
@@ -213,7 +240,7 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
       )}
 
       {billList.map(({ bill, items }) => {
-        const groupTotal = items.reduce((s, e) => s + e.amount, 0)
+        const groupTotal = items.reduce((s, e) => s + signedAmount(e), 0)
         const groupBank = items[0]?.bank || ''
         const isCollapsed = collapsed[bill.id] ?? false
         return (
@@ -228,7 +255,9 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
                   const account = bankAccounts.find(b => b.name === v)
                   onUpdateByBill(bill.id, { bank: v, type: account?.group || '' })
                 }} />
-                <span className="fn-bill-group-total">{groupTotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</span>
+                <span className={`fn-bill-group-total ${groupTotal < 0 ? 'fn-outcome' : 'fn-income'}`}>
+                  {groupTotal < 0 ? '' : '+'}{groupTotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                </span>
                 <button className="fn-delete-btn" onClick={() => onDeleteBill(bill.id)} title="ลบบิลทั้งหมด">×</button>
               </div>
             </div>
@@ -247,6 +276,9 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
 
       {adding ? (
         <div className="fn-add-row">
+          <select className="fn-inline-select" value={form.txType} onChange={e => setForm({ ...form, txType: e.target.value as TxType })}>
+            {Object.entries(TX_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
           <input placeholder="รายการ" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
           <input type="number" placeholder="จำนวน" value={form.qty || ''} onChange={e => setForm({ ...form, qty: Number(e.target.value) })} style={{ maxWidth: 80 }} />
           <input type="number" placeholder="ราคา" value={form.price || ''} onChange={e => setForm({ ...form, price: Number(e.target.value) })} />
@@ -257,7 +289,7 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
           <button className="fn-btn-cancel" onClick={() => setAdding(false)}>ยกเลิก</button>
         </div>
       ) : (
-        <button className="fn-btn-add" onClick={() => setAdding(true)}>+ เพิ่มรายจ่าย</button>
+        <button className="fn-btn-add" onClick={() => setAdding(true)}>+ เพิ่มรายการ</button>
       )}
     </div>
   )
