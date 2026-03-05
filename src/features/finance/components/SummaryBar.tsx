@@ -208,20 +208,12 @@ export function SummaryBar({ data }: Props) {
       <BarChart data={data} />
       <div className="fn-stats">
         <div className="stat-card">
-          <div className="label">สินทรัพย์ต้นเดือน</div>
-          <div className="value">{fmt(totalAssets)}</div>
-        </div>
-        <div className="stat-card">
           <div className="label">รายรับ</div>
           <div className="value">{fmt(totalIncome)}</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card stat-card-expense">
           <div className="label">รายจ่าย</div>
           <div className="value danger">{fmt(totalExpense)}</div>
-        </div>
-        <div className="stat-card">
-          <div className="label">เงินออม</div>
-          <div className="value blue">{fmt(totalSavings)}</div>
         </div>
         {totalDebtsLent > 0 && (
           <div className="stat-card">
@@ -229,9 +221,9 @@ export function SummaryBar({ data }: Props) {
             <div className="value">{fmt(totalDebtsLent)}</div>
           </div>
         )}
-        <div className="stat-card">
+        <div className="stat-card stat-card-net">
           <div className="label">คงเหลือสุทธิ</div>
-          <div className={`value ${netBalance >= 0 ? '' : 'danger'}`}>
+          <div className={`value ${netBalance >= 0 ? 'blue' : 'danger'}`}>
             {fmt(netBalance)}
           </div>
         </div>
