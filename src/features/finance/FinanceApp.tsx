@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useFinance } from './api/use-finance'
 import { SummaryBar } from './components/SummaryBar'
 import { IncomeSection } from './components/IncomeSection'
@@ -25,14 +26,33 @@ function shiftMonth(month: string, delta: number) {
   return d.toISOString().slice(0, 7)
 }
 
+type Tab = 'overview' | 'credit-card'
+
+const TABS: { key: Tab; label: string }[] = [
+  { key: 'overview', label: 'ภาพรวม' },
+  { key: 'credit-card', label: 'บัตรเครดิต' },
+]
+
 export function FinanceApp() {
   const finance = useFinance()
   const { data, loading, selectedMonth, setSelectedMonth } = finance
+  const [activeTab, setActiveTab] = useState<Tab>('overview')
 
   return (
     <div className="fn-container">
       <div className="fn-header">
         <h1 className="fn-logo">FIN<span>ANCE</span></h1>
+        <div className="fn-tabs">
+          {TABS.map(tab => (
+            <button
+              key={tab.key}
+              className={`fn-tab ${activeTab === tab.key ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab.key)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
         <div className="month-nav">
           <button className="month-nav-btn" onClick={() => setSelectedMonth(shiftMonth(selectedMonth, -1))}>◀</button>
           <span className="month-nav-label">{formatMonthLabel(selectedMonth)}</span>
@@ -42,17 +62,14 @@ export function FinanceApp() {
 
       {loading ? (
         <div className="fn-loading">กำลังโหลด...</div>
+      ) : activeTab === 'credit-card' ? (
+        <CreditCardSection
+          cards={data.creditCards}
+          onAdd={finance.addCreditCard}
+          onUpdate={finance.updateCreditCard}
+          onDelete={finance.deleteCreditCard}
+        />
       ) : (
-        <>
-        <div style={{ marginBottom: 16 }}>
-          <CreditCardSection
-            cards={data.creditCards}
-            onAdd={finance.addCreditCard}
-            onUpdate={finance.updateCreditCard}
-            onDelete={finance.deleteCreditCard}
-          />
-        </div>
-
         <div className="fn-layout">
           <div className="fn-layout-left">
             <ExpenseSection
@@ -108,7 +125,6 @@ export function FinanceApp() {
             />
           </div>
         </div>
-        </>
       )}
     </div>
   )
