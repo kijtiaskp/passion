@@ -1,6 +1,6 @@
 import { useState, useMemo, Fragment } from 'react'
 import { Icons } from '../../../components/icons'
-import { catLabels, catIcons, filterOptions } from '../constants'
+import { catLabels, catIcons, filterOptions, categories } from '../constants'
 import { formatHrs, formatDays, formatTime, formatDate } from '../utils'
 import type { LogEntry, Category } from '../types'
 
@@ -10,6 +10,85 @@ interface Props {
   selectedMonth: string
   onMonthChange: (month: string) => void
   onDelete: (id: number) => void
+  onEdit: (entry: LogEntry) => void
+  onClone: (entry: LogEntry) => void
+  projects: string[]
+}
+
+function EditModal({ entry, projects, onSave, onClose }: {
+  entry: LogEntry
+  projects: string[]
+  onSave: (updated: LogEntry) => void
+  onClose: () => void
+}) {
+  const startDt = new Date(entry.start)
+  const endDt = new Date(entry.end)
+  const toTime = (d: Date) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+
+  const [project, setProject] = useState(entry.project || '')
+  const [task, setTask] = useState(entry.task)
+  const [cat, setCat] = useState<Category>(entry.cat as Category)
+  const [date, setDate] = useState(entry.start.slice(0, 10))
+  const [startTime, setStartTime] = useState(toTime(startDt))
+  const [endTime, setEndTime] = useState(toTime(endDt))
+
+  const handleSave = () => {
+    if (!task.trim()) { alert('กรุณากรอกชื่องาน'); return }
+    const start = new Date(`${date}T${startTime}`)
+    const end = new Date(`${date}T${endTime}`)
+    if (end <= start) { alert('เวลาสิ้นสุดต้องมากกว่าเวลาเริ่ม'); return }
+    const hrs = Math.round((end.getTime() - start.getTime()) / 36000) / 100
+    onSave({ ...entry, project, task: task.trim(), cat, start: start.toISOString(), end: end.toISOString(), hrs })
+    onClose()
+  }
+
+  return (
+    <div className="edit-modal-overlay" onClick={onClose}>
+      <div className="edit-modal" onClick={e => e.stopPropagation()}>
+        <div className="edit-modal-header">
+          <span>{Icons.pen} แก้ไขรายการ</span>
+          <button className="edit-modal-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="edit-modal-body">
+          <div className="edit-field">
+            <label>โปรเจค</label>
+            <select value={project} onChange={e => setProject(e.target.value)}>
+              <option value="">— ไม่ระบุ —</option>
+              {projects.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </div>
+          <div className="edit-field">
+            <label>งาน / Task</label>
+            <input type="text" value={task} onChange={e => setTask(e.target.value)} />
+          </div>
+          <div className="edit-field">
+            <label>หมวดหมู่</label>
+            <select value={cat} onChange={e => setCat(e.target.value as Category)}>
+              {categories.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+            </select>
+          </div>
+          <div className="edit-field-row">
+            <div className="edit-field">
+              <label>วันที่</label>
+              <input type="date" value={date} onChange={e => setDate(e.target.value)} />
+            </div>
+            <div className="edit-field">
+              <label>เริ่ม</label>
+              <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
+            </div>
+            <div className="edit-field">
+              <label>สิ้นสุด</label>
+              <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} />
+            </div>
+          </div>
+        </div>
+        <div className="edit-modal-footer">
+          <button className="btn btn-primary" onClick={handleSave}>บันทึก</button>
+          <button className="btn-cancel-proj" style={{ marginLeft: 8 }} onClick={onClose}>ยกเลิก</button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function prevMonth(m: string) {
@@ -29,9 +108,10 @@ function formatMonth(m: string) {
   return new Date(y, mo - 1, 1).toLocaleDateString('th-TH', { month: 'long', year: 'numeric' })
 }
 
-export function LogTable({ logs, loading, selectedMonth, onMonthChange, onDelete }: Props) {
+export function LogTable({ logs, loading, selectedMonth, onMonthChange, onDelete, onEdit, onClone, projects }: Props) {
   const [currentFilter, setCurrentFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [editingEntry, setEditingEntry] = useState<LogEntry | null>(null)
 
   const filtered = useMemo(() => {
     const q = searchQuery.toLowerCase()
@@ -69,6 +149,14 @@ export function LogTable({ logs, loading, selectedMonth, onMonthChange, onDelete
 
   return (
     <>
+      {editingEntry && (
+        <EditModal
+          entry={editingEntry}
+          projects={projects}
+          onSave={onEdit}
+          onClose={() => setEditingEntry(null)}
+        />
+      )}
       <div className="filter-bar">
         {/* Month navigator */}
         <div className="month-nav">
@@ -135,13 +223,17 @@ export function LogTable({ logs, loading, selectedMonth, onMonthChange, onDelete
             </tr>
           ) : (
             Object.entries(grouped).map(([date, items]) => {
-              const dayTotal = items.reduce((s, i) => s + i.hrs, 0)
+              const workTotal = items.filter(i => i.cat !== 'leave').reduce((s, i) => s + i.hrs, 0)
+              const leaveTotal = items.filter(i => i.cat === 'leave').reduce((s, i) => s + i.hrs, 0)
               return (
                 <Fragment key={date}>
                   <tr className="date-header">
                     <td colSpan={8}>
-                      {Icons.calSmall}{date} — รวม {formatHrs(dayTotal)}{' '}
-                      <span style={{ color: 'var(--muted)', fontSize: 11 }}>({formatDays(dayTotal)} วัน)</span>
+                      {Icons.calSmall}{date} — รวม {formatHrs(workTotal)}{' '}
+                      <span style={{ color: 'var(--muted)', fontSize: 11 }}>({formatDays(workTotal)} วัน)</span>
+                      {leaveTotal > 0 && (
+                        <span className="date-header-leave">ลา {formatHrs(leaveTotal)}</span>
+                      )}
                     </td>
                   </tr>
                   {items.map(l => (
@@ -164,9 +256,17 @@ export function LogTable({ logs, loading, selectedMonth, onMonthChange, onDelete
                       <td className="duration-mono">{formatHrs(l.hrs)}</td>
                       <td className="days-mono">{formatDays(l.hrs)}</td>
                       <td>
-                        <button className="delete-btn" onClick={() => onDelete(l.id)}>
-                          {Icons.trash}
-                        </button>
+                        <div style={{ display: 'flex', gap: 2 }}>
+                          <button className="edit-btn" title="แก้ไข" onClick={() => setEditingEntry(l)}>
+                            {Icons.pen}
+                          </button>
+                          <button className="copy-btn" title="คัดลอกงานนี้ (วันนี้)" onClick={() => onClone(l)}>
+                            {Icons.copy}
+                          </button>
+                          <button className="delete-btn" onClick={() => onDelete(l.id)}>
+                            {Icons.trash}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

@@ -58,6 +58,26 @@ export function useLogs() {
     await fetch(`${API}/timelog/${id}?month=${month}`, { method: 'DELETE' })
   }, [logs])
 
+  const cloneLog = useCallback(async (source: LogEntry) => {
+    const origStart = new Date(source.start)
+    const origEnd = new Date(source.end)
+    const today = new Date()
+    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), origStart.getHours(), origStart.getMinutes())
+    const end   = new Date(today.getFullYear(), today.getMonth(), today.getDate(), origEnd.getHours(), origEnd.getMinutes())
+    const hrs = Math.round((end.getTime() - start.getTime()) / 36000) / 100
+    await addLog(source.task, source.cat, source.project, start, end, hrs)
+  }, [addLog])
+
+  const updateLog = useCallback(async (updated: LogEntry) => {
+    const month = updated.start.slice(0, 7)
+    setLogs(prev => prev.map(l => l.id === updated.id ? updated : l))
+    await fetch(`${API}/timelog/${updated.id}?month=${month}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated),
+    })
+  }, [])
+
   const addProject = useCallback(async (name: string) => {
     setProjects(prev => [...prev, name])
     await fetch(`${API}/projects`, {
@@ -67,5 +87,5 @@ export function useLogs() {
     })
   }, [])
 
-  return { logs, projects, loading, selectedMonth, setSelectedMonth, addLog, deleteLog, addProject }
+  return { logs, projects, loading, selectedMonth, setSelectedMonth, addLog, cloneLog, updateLog, deleteLog, addProject }
 }

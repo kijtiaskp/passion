@@ -4,6 +4,7 @@ interface Stats {
   todayHrs: number
   weekHrs: number
   allHrs: number
+  leaveHrs: number
 }
 
 export function StatsBar({ stats }: { stats: Stats }) {
@@ -23,6 +24,11 @@ export function StatsBar({ stats }: { stats: Stats }) {
         <div className="label">รวมทั้งหมด</div>
         <div className="value warn">{formatHrs(stats.allHrs)}</div>
         <div className="stat-sub">= {formatDays(stats.allHrs)} วัน</div>
+      </div>
+      <div className="stat-card stat-card-leave">
+        <div className="label">ลารวม</div>
+        <div className="value leave">{formatHrs(stats.leaveHrs)}</div>
+        <div className="stat-sub">= {formatDays(stats.leaveHrs)} วัน</div>
       </div>
     </div>
   )

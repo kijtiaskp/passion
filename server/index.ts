@@ -4,6 +4,7 @@ import { cors } from 'hono/cors'
 import timelog from './routes/timelog'
 import projects from './routes/projects'
 import finance from './routes/finance'
+import activity from './routes/activity'
 
 const app = new Hono()
 
@@ -12,6 +13,7 @@ app.use('*', cors({ origin: 'http://localhost:5173' }))
 app.route('/api/timelog', timelog)
 app.route('/api/projects', projects)
 app.route('/api/finance', finance)
+app.route('/api/activity', activity)
 
 app.get('/health', (c) => c.json({ ok: true }))
 

@@ -36,6 +36,19 @@ timelog.post('/', async (c) => {
   return c.json(entry, 201)
 })
 
+// PUT /api/timelog/:id — update an existing entry
+timelog.put('/:id', async (c) => {
+  const id = Number(c.req.param('id'))
+  const updated = await c.req.json<LogEntry>()
+  const month = updated.start.slice(0, 7)
+  const logs = readJson<LogEntry[]>(monthFile(month), [])
+  const idx = logs.findIndex(l => l.id === id)
+  if (idx === -1) return c.json({ error: 'not found' }, 404)
+  logs[idx] = { ...updated, id }
+  writeJson(monthFile(month), logs)
+  return c.json(logs[idx])
+})
+
 // DELETE /api/timelog/:id?month=2026-03
 timelog.delete('/:id', (c) => {
   const id = Number(c.req.param('id'))
