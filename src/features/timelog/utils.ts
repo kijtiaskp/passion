@@ -16,6 +16,10 @@ export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
+export function formatDayName(iso: string): string {
+  return new Date(iso).toLocaleDateString('th-TH', { weekday: 'long' })
+}
+
 export function getInitialTime(): { start: string; end: string } {
   const now = new Date()
   const end = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`

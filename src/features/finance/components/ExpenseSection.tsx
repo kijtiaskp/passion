@@ -1,9 +1,17 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import type { Expense, BankBalance, BillInfo, BalanceGroup, TxType } from '../types'
 import { BALANCE_GROUP_LABELS, TX_TYPE_LABELS, signedAmount } from '../types'
 import { EditableCell, EditableNum } from './CreditCardSection'
 
 const GROUP_ORDER: BalanceGroup[] = ['bank', 'ewallet', 'cash', 'pocket']
+
+function formatDateLabel(dateStr: string): string {
+  if (!dateStr || dateStr === '0000-00-00') return 'ไม่ระบุวันที่'
+  const d = new Date(dateStr + 'T00:00:00')
+  const day = d.toLocaleDateString('th-TH', { weekday: 'long' })
+  const full = d.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })
+  return `${day} ${full}`
+}
 
 function AccountSelect({ value, bankAccounts, onChange }: { value: string; bankAccounts: BankBalance[]; onChange: (v: string) => void }) {
   const grouped = GROUP_ORDER.map(g => ({
@@ -156,6 +164,14 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
     items: expenses.filter(e => e.billId === bill.id),
   })).sort((a, b) => sortDesc(a.bill, b.bill))
 
+  const dateGroups = useMemo(() => {
+    const groups: Record<string, { expenses: Expense[]; bills: typeof billList }> = {}
+    const ensure = (d: string) => { if (!groups[d]) groups[d] = { expenses: [], bills: [] } }
+    ungrouped.forEach(e => { const d = e.date || '0000-00-00'; ensure(d); groups[d].expenses.push(e) })
+    billList.forEach(b => { const d = b.bill.date || '0000-00-00'; ensure(d); groups[d].bills.push(b) })
+    return Object.entries(groups).sort(([a], [b]) => b.localeCompare(a))
+  }, [ungrouped, billList])
+
   const [expanded, setExpanded] = useState<Record<number, boolean>>({})
   const toggleExpand = (id: number) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }))
 
@@ -283,44 +299,60 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
         </span>
       </div>
 
-      {ungrouped.length > 0 && (
-        <div className="fn-compact-list">
-          {ungrouped.map(exp => renderCompactRow(exp))}
-        </div>
-      )}
-
-      {billList.map(({ bill, items }) => {
-        const groupTotal = items.reduce((s, e) => s + signedAmount(e), 0)
-        const groupBank = items[0]?.bank || ''
-        const isCollapsed = collapsed[bill.id] ?? false
+      {dateGroups.map(([date, group], idx) => {
+        const allItems = [...group.expenses, ...group.bills.flatMap(b => b.items)]
+        const dayTotal = allItems.reduce((s, e) => s + signedAmount(e), 0)
         return (
-          <div key={bill.id} className="fn-bill-group">
-            <div className="fn-bill-group-header">
-              <span className="fn-bill-group-label fn-clickable" onClick={() => toggleCollapse(bill.id)}>
-                {isCollapsed ? '▸' : '▾'} {bill.storeName}{bill.branch ? ` — ${bill.branch}` : ''}
-                {bill.date && <span className="fn-bill-group-date">{bill.date} {bill.time}</span>}
-              </span>
-              <div className="fn-bill-group-actions">
-                <AccountSelect value={groupBank} bankAccounts={bankAccounts} onChange={v => {
-                  const account = bankAccounts.find(b => b.name === v)
-                  onUpdateByBill(bill.id, { bank: v, type: account?.group || '' })
-                }} />
-                <span className={`fn-bill-group-total ${groupTotal < 0 ? 'fn-outcome' : 'fn-income'}`}>
-                  {groupTotal < 0 ? '' : '+'}{groupTotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
-                </span>
-                <button className="fn-delete-btn" onClick={() => onDeleteBill(bill.id)} title="ลบบิลทั้งหมด">×</button>
-              </div>
-            </div>
-            {!isCollapsed && (
-              <>
-                <BillDetail bill={bill} onUploadImage={handleUploadImage} />
-                <table className="fn-table">
-                  {billTableHead}
-                  <tbody>{items.map(exp => renderBillRow(exp))}</tbody>
-                </table>
-              </>
-            )}
+        <div key={date}>
+          {idx > 0 && <div className="fn-date-divider" />}
+          <div className="fn-date-header">
+            <span>{formatDateLabel(date)}</span>
+            <span className={`fn-date-total ${dayTotal < 0 ? 'fn-outcome' : 'fn-income'}`}>
+              {dayTotal < 0 ? '' : '+'}{dayTotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+            </span>
           </div>
+
+          {group.expenses.length > 0 && (
+            <div className="fn-compact-list">
+              {group.expenses.map(exp => renderCompactRow(exp))}
+            </div>
+          )}
+
+          {group.bills.map(({ bill, items }) => {
+            const groupTotal = items.reduce((s, e) => s + signedAmount(e), 0)
+            const groupBank = items[0]?.bank || ''
+            const isCollapsed = collapsed[bill.id] ?? false
+            return (
+              <div key={bill.id} className="fn-bill-group">
+                <div className="fn-bill-group-header">
+                  <span className="fn-bill-group-label fn-clickable" onClick={() => toggleCollapse(bill.id)}>
+                    {isCollapsed ? '▸' : '▾'} {bill.storeName}{bill.branch ? ` — ${bill.branch}` : ''}
+                    {bill.date && <span className="fn-bill-group-date">{bill.time}</span>}
+                  </span>
+                  <div className="fn-bill-group-actions">
+                    <AccountSelect value={groupBank} bankAccounts={bankAccounts} onChange={v => {
+                      const account = bankAccounts.find(b => b.name === v)
+                      onUpdateByBill(bill.id, { bank: v, type: account?.group || '' })
+                    }} />
+                    <span className={`fn-bill-group-total ${groupTotal < 0 ? 'fn-outcome' : 'fn-income'}`}>
+                      {groupTotal < 0 ? '' : '+'}{groupTotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                    </span>
+                    <button className="fn-delete-btn" onClick={() => onDeleteBill(bill.id)} title="ลบบิลทั้งหมด">×</button>
+                  </div>
+                </div>
+                {!isCollapsed && (
+                  <>
+                    <BillDetail bill={bill} onUploadImage={handleUploadImage} />
+                    <table className="fn-table">
+                      {billTableHead}
+                      <tbody>{items.map(exp => renderBillRow(exp))}</tbody>
+                    </table>
+                  </>
+                )}
+              </div>
+            )
+          })}
+        </div>
         )
       })}
 

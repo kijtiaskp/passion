@@ -1,7 +1,7 @@
 import { useState, useMemo, Fragment } from 'react'
 import { Icons } from '../../../components/icons'
 import { catLabels, catIcons, filterOptions, categories } from '../constants'
-import { formatHrs, formatDays, formatTime, formatDate } from '../utils'
+import { formatHrs, formatDays, formatTime, formatDate, formatDayName } from '../utils'
 import type { LogEntry, Category } from '../types'
 
 interface Props {
@@ -123,16 +123,16 @@ export function LogTable({ logs, loading, selectedMonth, onMonthChange, onDelete
   }, [logs, currentFilter, searchQuery])
 
   const grouped = useMemo(() => {
-    const groups: Record<string, LogEntry[]> = {}
+    const groups: Record<string, { iso: string; items: LogEntry[] }> = {}
     filtered.forEach(l => {
       const d = formatDate(l.start)
-      if (!groups[d]) groups[d] = []
-      groups[d].push(l)
+      if (!groups[d]) groups[d] = { iso: l.start, items: [] }
+      groups[d].items.push(l)
     })
     return groups
   }, [filtered])
 
-  const exportCSV = () => {
+  const buildRows = () => {
     const header = ['No.', 'Date', 'Type', 'Task', 'Manday', '']
     const rows: string[][] = [header]
     const sorted = [...filtered].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
@@ -145,10 +145,25 @@ export function LogTable({ logs, loading, selectedMonth, onMonthChange, onDelete
       const hrs = String(l.hrs)
       rows.push([String(i + 1), dateStr, type, task, manday, hrs])
     })
+    return rows
+  }
+
+  const exportCSV = () => {
+    const rows = buildRows()
     const a = document.createElement('a')
     a.href = 'data:text/csv;charset=utf-8,\uFEFF' + rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n')
     a.download = `timelog_${selectedMonth}.csv`
     a.click()
+  }
+
+  const [copied, setCopied] = useState(false)
+  const copyToClipboard = () => {
+    const rows = buildRows()
+    const tsv = rows.map(r => r.join('\t')).join('\n')
+    navigator.clipboard.writeText(tsv).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
   }
 
   const isCurrentMonth = selectedMonth === new Date().toISOString().slice(0, 7)
@@ -193,6 +208,9 @@ export function LogTable({ logs, loading, selectedMonth, onMonthChange, onDelete
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
         />
+        <button className="export-btn" onClick={copyToClipboard}>
+          {copied ? '✓ Copied!' : 'Copy'}
+        </button>
         <button className="export-btn" onClick={exportCSV}>
           {Icons.download}
           Export CSV
@@ -228,14 +246,15 @@ export function LogTable({ logs, loading, selectedMonth, onMonthChange, onDelete
               </td>
             </tr>
           ) : (
-            Object.entries(grouped).map(([date, items]) => {
+            Object.entries(grouped).map(([date, { iso, items }]) => {
               const workTotal = items.filter(i => i.cat !== 'leave').reduce((s, i) => s + i.hrs, 0)
               const leaveTotal = items.filter(i => i.cat === 'leave').reduce((s, i) => s + i.hrs, 0)
               return (
                 <Fragment key={date}>
+                  <tr className="date-divider"><td colSpan={8}></td></tr>
                   <tr className="date-header">
                     <td colSpan={8}>
-                      {Icons.calSmall}{date} — รวม {formatHrs(workTotal)}{' '}
+                      {Icons.calSmall}{formatDayName(iso)} {date} — รวม {formatHrs(workTotal)}{' '}
                       <span style={{ color: 'var(--muted)', fontSize: 11 }}>({formatDays(workTotal)} วัน)</span>
                       {leaveTotal > 0 && (
                         <span className="date-header-leave">ลา {formatHrs(leaveTotal)}</span>

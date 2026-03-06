@@ -567,6 +567,14 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
 .log-table tbody tr:hover { background: rgba(255, 255, 255, 0.025); }
 .log-table td { padding: 12px 14px; font-size: 13px; vertical-align: middle; }
 
+.date-divider td {
+  padding: 0;
+  height: 10px;
+  border: none;
+  background: transparent;
+}
+.log-table tbody tr.date-divider:first-child td { height: 0; }
+
 .date-header td {
   background: rgba(0, 255, 136, 0.025);
   font-family: 'IBM Plex Mono', monospace;
