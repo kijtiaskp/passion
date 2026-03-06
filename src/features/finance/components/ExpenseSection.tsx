@@ -2,6 +2,7 @@ import { useState, useRef, useMemo } from 'react'
 import type { Expense, BankBalance, BillInfo, BalanceGroup, TxType } from '../types'
 import { BALANCE_GROUP_LABELS, TX_TYPE_LABELS, signedAmount } from '../types'
 import { EditableCell, EditableNum } from './CreditCardSection'
+import { CATEGORIES, CATEGORY_LABELS, SUBCATEGORY_LABELS, getCategoryForSub, suggestCategory } from '../categories'
 
 const GROUP_ORDER: BalanceGroup[] = ['bank', 'ewallet', 'cash', 'pocket']
 
@@ -31,6 +32,45 @@ function AccountSelect({ value, bankAccounts, onChange }: { value: string; bankA
         </optgroup>
       ))}
     </select>
+  )
+}
+
+function CategorySelect({ category, subcategory, onChange }: {
+  category?: string
+  subcategory?: string
+  onChange: (cat: string, sub: string) => void
+}) {
+  const handleSubChange = (subKey: string) => {
+    const catKey = getCategoryForSub(subKey)
+    onChange(catKey, subKey)
+  }
+
+  return (
+    <select
+      className="fn-inline-select fn-category-select"
+      value={subcategory || ''}
+      onChange={e => handleSubChange(e.target.value)}
+    >
+      <option value="">— หมวดหมู่ —</option>
+      {CATEGORIES.map(cat => (
+        <optgroup key={cat.key} label={cat.label}>
+          {cat.subcategories.map(sub => (
+            <option key={sub.key} value={sub.key}>{sub.label}</option>
+          ))}
+        </optgroup>
+      ))}
+    </select>
+  )
+}
+
+function CategoryBadge({ category, subcategory }: { category?: string; subcategory?: string }) {
+  if (!subcategory) return null
+  const catLabel = category ? CATEGORY_LABELS[category] : ''
+  const subLabel = SUBCATEGORY_LABELS[subcategory] || subcategory
+  return (
+    <span className="fn-category-badge" title={catLabel}>
+      {subLabel}
+    </span>
   )
 }
 
@@ -133,7 +173,14 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
   const handleAdd = () => {
     if (!form.name) return
     const account = bankAccounts.find(b => b.name === form.bank)
-    onAdd({ ...form, amount: Math.abs(form.qty * form.price), type: account?.group || '' })
+    const suggested = suggestCategory(form.name)
+    onAdd({
+      ...form,
+      amount: Math.abs(form.qty * form.price),
+      type: account?.group || '',
+      category: suggested?.category || '',
+      subcategory: suggested?.subcategory || '',
+    })
     const n = new Date()
     const d = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`
     const t = `${String(n.getHours()).padStart(2, '0')}:${String(n.getMinutes()).padStart(2, '0')}`
@@ -199,6 +246,13 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
           {prefix}{exp.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
         </td>
         <td>
+          <CategorySelect
+            category={exp.category}
+            subcategory={exp.subcategory}
+            onChange={(cat, sub) => onUpdate(exp.id, { category: cat, subcategory: sub })}
+          />
+        </td>
+        <td>
           <button className="fn-delete-btn" onClick={() => onDelete(exp.id)}>×</button>
         </td>
       </tr>
@@ -219,11 +273,11 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
         <div className="fn-compact-summary" onClick={() => toggleExpand(exp.id)}>
           <span className={`fn-compact-type fn-compact-type-${tx}`}>{TX_TYPE_LABELS[tx]}</span>
           <span className="fn-compact-name">{exp.name}</span>
-          {bankLabel && <span className="fn-compact-bank">{bankLabel}</span>}
+          <CategoryBadge category={exp.category} subcategory={exp.subcategory} />
           <span className={`fn-compact-amount ${totalClass}`}>
             {prefix}{exp.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
           </span>
-          <span className="fn-compact-date">{exp.date} {exp.time}</span>
+          {exp.time && <span className="fn-compact-date">{exp.time}</span>}
           <span className="fn-compact-chevron">{isOpen ? '▾' : '▸'}</span>
         </div>
         {isOpen && (
@@ -269,6 +323,14 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
               </span>
             </div>
             <div className="fn-compact-field">
+              <label>หมวดหมู่</label>
+              <CategorySelect
+                category={exp.category}
+                subcategory={exp.subcategory}
+                onChange={(cat, sub) => onUpdate(exp.id, { category: cat, subcategory: sub })}
+              />
+            </div>
+            <div className="fn-compact-field">
               <button className="fn-delete-btn" onClick={() => onDelete(exp.id)}>×</button>
             </div>
           </div>
@@ -285,6 +347,7 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
         <th>จำนวน</th>
         <th>ราคา</th>
         <th>รวม</th>
+        <th>หมวดหมู่</th>
         <th></th>
       </tr>
     </thead>

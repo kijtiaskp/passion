@@ -35,6 +35,8 @@ export interface Expense {
   bankTo?: string
   type: string
   txType?: TxType
+  category?: string
+  subcategory?: string
   date?: string
   time?: string
   billId?: number
