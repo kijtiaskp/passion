@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { useFinance } from './api/use-finance'
 import { SummaryBar } from './components/SummaryBar'
 import { IncomeSection } from './components/IncomeSection'
@@ -8,6 +8,7 @@ import { ExpenseSection } from './components/ExpenseSection'
 import { DebtSection } from './components/DebtSection'
 import { SavingSection } from './components/SavingSection'
 import { HomeLoanSection } from './components/HomeLoanSection'
+import { FinanceTips } from './components/FinanceTips'
 import './finance.css'
 
 function formatMonthLabel(month: string) {
@@ -26,106 +27,148 @@ function shiftMonth(month: string, delta: number) {
   return d.toISOString().slice(0, 7)
 }
 
-type Tab = 'overview' | 'credit-card'
-
-const TABS: { key: Tab; label: string }[] = [
-  { key: 'overview', label: 'ภาพรวม' },
-  { key: 'credit-card', label: 'บัตรเครดิต' },
+const TABS = [
+  { key: 0, label: 'ภาพรวม' },
+  { key: 1, label: 'บัตรเครดิต' },
 ]
 
 export function FinanceApp() {
   const finance = useFinance()
   const { data, loading, selectedMonth, setSelectedMonth } = finance
-  const [activeTab, setActiveTab] = useState<Tab>('overview')
+  const [activeCol, setActiveCol] = useState(0)
+  const deckRef = useRef<HTMLDivElement>(null)
+
+  const handleScroll = useCallback(() => {
+    const deck = deckRef.current
+    if (!deck) return
+    const scrollLeft = deck.scrollLeft
+    const colWidth = deck.offsetWidth
+    setActiveCol(Math.round(scrollLeft / colWidth))
+  }, [])
+
+  const scrollToCol = useCallback((col: number) => {
+    const deck = deckRef.current
+    if (!deck) return
+    deck.scrollTo({ left: col * deck.offsetWidth, behavior: 'smooth' })
+  }, [])
 
   return (
-    <div className="fn-container">
-      <div className="fn-header">
-        <h1 className="fn-logo">FIN<span>ANCE</span></h1>
-        <div className="fn-tabs">
-          {TABS.map(tab => (
-            <button
-              key={tab.key}
-              className={`fn-tab ${activeTab === tab.key ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.key)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-        <div className="month-nav">
-          <button className="month-nav-btn" onClick={() => setSelectedMonth(shiftMonth(selectedMonth, -1))}>◀</button>
-          <span className="month-nav-label">{formatMonthLabel(selectedMonth)}</span>
-          <button className="month-nav-btn" onClick={() => setSelectedMonth(shiftMonth(selectedMonth, 1))}>▶</button>
-        </div>
+    <>
+      <div className="fn-deck-nav">
+        {TABS.map(tab => (
+          <button
+            key={tab.key}
+            className={`fn-deck-dot ${activeCol === tab.key ? 'active' : ''}`}
+            onClick={() => scrollToCol(tab.key)}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {loading ? (
-        <div className="fn-loading">กำลังโหลด...</div>
-      ) : activeTab === 'credit-card' ? (
-        <CreditCardSection
-          cards={data.creditCards}
-          onAdd={finance.addCreditCard}
-          onUpdate={finance.updateCreditCard}
-          onDelete={finance.deleteCreditCard}
-        />
-      ) : (
-        <div className="fn-layout">
-          <div className="fn-layout-left">
-            <ExpenseSection
-              expenses={data.expenses}
-              bills={data.bills ?? []}
-              bankAccounts={data.bankBalances ?? []}
-              onAdd={finance.addExpense}
-              onUpdate={finance.updateExpense}
-              onUpdateByBill={finance.updateExpensesByBill}
-              onDelete={finance.deleteExpense}
-              onUpdateBill={finance.updateBill}
-              onDeleteBill={finance.deleteBill}
-            />
-          </div>
-
-          <div className="fn-layout-right">
-            <IncomeSection
-              salary={data.income.salary}
-              carryOver={data.income.carryOver}
-              onUpdate={finance.updateIncome}
-            />
-
-            <BalanceSection
-              balances={data.bankBalances ?? []}
-              expenses={data.expenses}
-              onAdd={finance.addBalance}
-              onUpdate={finance.updateBalance}
-              onDelete={finance.deleteBalance}
-            />
-
-            <SummaryBar data={data} />
-
-            <div className="fn-side-by-side">
-              <DebtSection
-                debts={data.debts}
-                onAdd={finance.addDebt}
-                onUpdate={finance.updateDebt}
-                onDelete={finance.deleteDebt}
-              />
-              <SavingSection
-                savings={data.savings}
-                onAdd={finance.addSaving}
-                onUpdate={finance.updateSaving}
-                onDelete={finance.deleteSaving}
-              />
+      <div className="fn-deck" ref={deckRef} onScroll={handleScroll}>
+        {/* Column 1: Overview */}
+        <div className="fn-deck-col">
+          <div className="fn-container">
+            <div className="fn-header">
+              <h1 className="fn-logo">FIN<span>ANCE</span></h1>
+              <div className="month-nav">
+                <button className="month-nav-btn" onClick={() => setSelectedMonth(shiftMonth(selectedMonth, -1))}>◀</button>
+                <span className="month-nav-label">{formatMonthLabel(selectedMonth)}</span>
+                <button className="month-nav-btn" onClick={() => setSelectedMonth(shiftMonth(selectedMonth, 1))}>▶</button>
+              </div>
             </div>
 
-            <HomeLoanSection
-              loans={data.homeLoan}
-              onAdd={finance.addLoan}
-              onUpdate={finance.updateLoan}
-              onDelete={finance.deleteLoan}
-            />
+            {loading ? (
+              <div className="fn-loading">กำลังโหลด...</div>
+            ) : (
+              <div className="fn-layout">
+                <div className="fn-layout-left">
+                  <ExpenseSection
+                    expenses={data.expenses}
+                    bills={data.bills ?? []}
+                    bankAccounts={data.bankBalances ?? []}
+                    onAdd={finance.addExpense}
+                    onUpdate={finance.updateExpense}
+                    onUpdateByBill={finance.updateExpensesByBill}
+                    onDelete={finance.deleteExpense}
+                    onUpdateBill={finance.updateBill}
+                    onDeleteBill={finance.deleteBill}
+                  />
+                </div>
+
+                <div className="fn-layout-right">
+                  <IncomeSection
+                    salary={data.income.salary}
+                    carryOver={data.income.carryOver}
+                    onUpdate={finance.updateIncome}
+                  />
+
+                  <BalanceSection
+                    balances={data.bankBalances ?? []}
+                    expenses={data.expenses}
+                    onAdd={finance.addBalance}
+                    onUpdate={finance.updateBalance}
+                    onDelete={finance.deleteBalance}
+                  />
+
+                  <SummaryBar data={data} />
+
+                  <div className="fn-side-by-side">
+                    <DebtSection
+                      debts={data.debts}
+                      onAdd={finance.addDebt}
+                      onUpdate={finance.updateDebt}
+                      onDelete={finance.deleteDebt}
+                    />
+                    <SavingSection
+                      savings={data.savings}
+                      onAdd={finance.addSaving}
+                      onUpdate={finance.updateSaving}
+                      onDelete={finance.deleteSaving}
+                    />
+                  </div>
+
+                  <HomeLoanSection
+                    loans={data.homeLoan}
+                    onAdd={finance.addLoan}
+                    onUpdate={finance.updateLoan}
+                    onDelete={finance.deleteLoan}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      )}
-    </div>
+
+        {/* Column 2: Credit Card */}
+        <div className="fn-deck-col">
+          <div className="fn-container">
+            <div className="fn-header">
+              <h1 className="fn-logo">FIN<span>ANCE</span></h1>
+              <div className="month-nav">
+                <button className="month-nav-btn" onClick={() => setSelectedMonth(shiftMonth(selectedMonth, -1))}>◀</button>
+                <span className="month-nav-label">{formatMonthLabel(selectedMonth)}</span>
+                <button className="month-nav-btn" onClick={() => setSelectedMonth(shiftMonth(selectedMonth, 1))}>▶</button>
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="fn-loading">กำลังโหลด...</div>
+            ) : (
+              <>
+                <CreditCardSection
+                  cards={data.creditCards}
+                  onAdd={finance.addCreditCard}
+                  onUpdate={finance.updateCreditCard}
+                  onDelete={finance.deleteCreditCard}
+                />
+                <FinanceTips />
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
   )
 }
