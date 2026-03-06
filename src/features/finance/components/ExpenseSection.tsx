@@ -14,6 +14,27 @@ function formatDateLabel(dateStr: string): string {
   return `${day} ${full}`
 }
 
+const fmt = (n: number) => n.toLocaleString('th-TH', { minimumFractionDigits: 2 })
+
+function fmtSigned(n: number) {
+  const prefix = n < 0 ? '' : '+'
+  return `${prefix}${fmt(n)}`
+}
+
+function txStyle(exp: Expense) {
+  const tx = exp.txType || 'expense'
+  const cls = tx === 'income' ? 'fn-income' : tx === 'transfer' ? 'fn-transfer' : 'fn-outcome'
+  const prefix = tx === 'income' ? '+' : tx === 'expense' ? '-' : ''
+  return { tx, cls, prefix }
+}
+
+function getNow() {
+  const n = new Date()
+  const date = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`
+  const time = `${String(n.getHours()).padStart(2, '0')}:${String(n.getMinutes()).padStart(2, '0')}`
+  return { date, time }
+}
+
 function AccountSelect({ value, bankAccounts, onChange }: { value: string; bankAccounts: BankBalance[]; onChange: (v: string) => void }) {
   const grouped = GROUP_ORDER.map(g => ({
     group: g,
@@ -150,10 +171,10 @@ interface Props {
 
 export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate, onUpdateByBill, onDelete, onUpdateBill, onDeleteBill }: Props) {
   const [adding, setAdding] = useState(false)
-  const now = new Date()
-  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-  const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
-  const [form, setForm] = useState({ name: '', qty: 1, price: 0, bank: '', date: todayStr, time: timeStr, txType: 'expense' as TxType })
+  const [form, setForm] = useState(() => {
+    const { date, time } = getNow()
+    return { name: '', qty: 1, price: 0, bank: '', date, time, txType: 'expense' as TxType }
+  })
   const total = expenses.reduce((s, e) => s + signedAmount(e), 0)
 
   const handleUploadImage = async (billId: number, file: File) => {
@@ -181,10 +202,8 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
       category: suggested?.category || '',
       subcategory: suggested?.subcategory || '',
     })
-    const n = new Date()
-    const d = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`
-    const t = `${String(n.getHours()).padStart(2, '0')}:${String(n.getMinutes()).padStart(2, '0')}`
-    setForm({ name: '', qty: 1, price: 0, bank: '', date: d, time: t, txType: 'expense' })
+    const { date, time } = getNow()
+    setForm({ name: '', qty: 1, price: 0, bank: '', date, time, txType: 'expense' })
     setAdding(false)
   }
 
@@ -199,33 +218,43 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
   const [collapsed, setCollapsed] = useState<Record<number, boolean>>({})
   const toggleCollapse = (id: number) => setCollapsed(prev => ({ ...prev, [id]: !prev[id] }))
 
-  const sortDesc = (a: { date?: string; time?: string }, b: { date?: string; time?: string }) => {
-    const da = a.date || '0000-00-00', db = b.date || '0000-00-00'
-    if (da !== db) return db.localeCompare(da)
-    return (b.time || '00:00').localeCompare(a.time || '00:00')
-  }
-
-  const ungrouped = expenses.filter(e => !e.billId).sort(sortDesc)
-  const billList = (bills ?? []).map(bill => ({
-    bill,
-    items: expenses.filter(e => e.billId === bill.id),
-  })).sort((a, b) => sortDesc(a.bill, b.bill))
-
   const dateGroups = useMemo(() => {
+    const sortDesc = (a: { date?: string; time?: string }, b: { date?: string; time?: string }) => {
+      const da = a.date || '0000-00-00', db = b.date || '0000-00-00'
+      if (da !== db) return db.localeCompare(da)
+      return (b.time || '00:00').localeCompare(a.time || '00:00')
+    }
+
+    const expByBill = new Map<number, Expense[]>()
+    const ungrouped: Expense[] = []
+    for (const e of expenses) {
+      if (e.billId) {
+        const arr = expByBill.get(e.billId)
+        if (arr) arr.push(e)
+        else expByBill.set(e.billId, [e])
+      } else {
+        ungrouped.push(e)
+      }
+    }
+    ungrouped.sort(sortDesc)
+
+    const billList = (bills ?? []).map(bill => ({
+      bill,
+      items: expByBill.get(bill.id) ?? [],
+    })).sort((a, b) => sortDesc(a.bill, b.bill))
+
     const groups: Record<string, { expenses: Expense[]; bills: typeof billList }> = {}
     const ensure = (d: string) => { if (!groups[d]) groups[d] = { expenses: [], bills: [] } }
     ungrouped.forEach(e => { const d = e.date || '0000-00-00'; ensure(d); groups[d].expenses.push(e) })
     billList.forEach(b => { const d = b.bill.date || '0000-00-00'; ensure(d); groups[d].bills.push(b) })
     return Object.entries(groups).sort(([a], [b]) => b.localeCompare(a))
-  }, [ungrouped, billList])
+  }, [expenses, bills])
 
   const [expanded, setExpanded] = useState<Record<number, boolean>>({})
   const toggleExpand = (id: number) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }))
 
   const renderBillRow = (exp: Expense) => {
-    const tx = exp.txType || 'expense'
-    const totalClass = tx === 'income' ? 'fn-income' : tx === 'transfer' ? 'fn-transfer' : 'fn-outcome'
-    const prefix = tx === 'income' ? '+' : tx === 'expense' ? '-' : ''
+    const { tx, cls, prefix } = txStyle(exp)
     return (
       <tr key={exp.id}>
         <td>
@@ -242,8 +271,8 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
         <td>
           <EditableNum value={exp.price || exp.amount} onChange={v => handlePriceChange(exp.id, exp, v)} />
         </td>
-        <td className={`fn-expense-total ${totalClass}`}>
-          {prefix}{exp.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+        <td className={`fn-expense-total ${cls}`}>
+          {prefix}{fmt(exp.amount)}
         </td>
         <td>
           <CategorySelect
@@ -260,9 +289,7 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
   }
 
   const renderCompactRow = (exp: Expense) => {
-    const tx = exp.txType || 'expense'
-    const totalClass = tx === 'income' ? 'fn-income' : tx === 'transfer' ? 'fn-transfer' : 'fn-outcome'
-    const prefix = tx === 'income' ? '+' : tx === 'expense' ? '-' : ''
+    const { tx, cls, prefix } = txStyle(exp)
     const isOpen = expanded[exp.id] ?? false
     const bankLabel = tx === 'transfer'
       ? `${exp.bank || '—'} → ${exp.bankTo || '—'}`
@@ -274,8 +301,8 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
           <span className={`fn-compact-type fn-compact-type-${tx}`}>{TX_TYPE_LABELS[tx]}</span>
           <span className="fn-compact-name">{exp.name}</span>
           <CategoryBadge category={exp.category} subcategory={exp.subcategory} />
-          <span className={`fn-compact-amount ${totalClass}`}>
-            {prefix}{exp.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+          <span className={`fn-compact-amount ${cls}`}>
+            {prefix}{fmt(exp.amount)}
           </span>
           {exp.time && <span className="fn-compact-date">{exp.time}</span>}
           <span className="fn-compact-chevron">{isOpen ? '▾' : '▸'}</span>
@@ -358,7 +385,7 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
       <div className="fn-section-header">
         <h3>รายการประจำเดือน</h3>
         <span className={`fn-section-total ${total < 0 ? 'fn-outcome' : 'fn-income'}`}>
-          {total < 0 ? '' : '+'}{total.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+          {fmtSigned(total)}
         </span>
       </div>
 
@@ -371,7 +398,7 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
           <div className="fn-date-header">
             <span>{formatDateLabel(date)}</span>
             <span className={`fn-date-total ${dayTotal < 0 ? 'fn-outcome' : 'fn-income'}`}>
-              {dayTotal < 0 ? '' : '+'}{dayTotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+              {fmtSigned(dayTotal)}
             </span>
           </div>
 
@@ -398,7 +425,7 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
                       onUpdateByBill(bill.id, { bank: v, type: account?.group || '' })
                     }} />
                     <span className={`fn-bill-group-total ${groupTotal < 0 ? 'fn-outcome' : 'fn-income'}`}>
-                      {groupTotal < 0 ? '' : '+'}{groupTotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                      {fmtSigned(groupTotal)}
                     </span>
                     <button className="fn-delete-btn" onClick={() => onDeleteBill(bill.id)} title="ลบบิลทั้งหมด">×</button>
                   </div>

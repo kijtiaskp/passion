@@ -219,6 +219,7 @@ const TIPS: TipArticle[] = [
 ]
 
 const ALL_TAGS = [...new Set(TIPS.flatMap(t => t.tags))]
+const tipIndexMap = new Map(TIPS.map((t, i) => [t, i]))
 
 export function FinanceTips() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
@@ -256,13 +257,13 @@ export function FinanceTips() {
       </div>
 
       <div className="fn-tips-list">
-        {filtered.map((tip, i) => {
-          const globalIdx = TIPS.indexOf(tip)
-          const isOpen = expandedIdx === globalIdx
+        {filtered.map((tip) => {
+          const idx = tipIndexMap.get(tip)!
+          const isOpen = expandedIdx === idx
           return (
-            <div key={globalIdx} className={`fn-tip-card ${isOpen ? 'open' : ''}`}>
-              <div className="fn-tip-header" onClick={() => setExpandedIdx(isOpen ? null : globalIdx)}>
-                <span className="fn-tip-num">{i + 1}</span>
+            <div key={idx} className={`fn-tip-card ${isOpen ? 'open' : ''}`}>
+              <div className="fn-tip-header" onClick={() => setExpandedIdx(isOpen ? null : idx)}>
+                <span className="fn-tip-num">{idx + 1}</span>
                 <span className="fn-tip-title">{tip.title}</span>
                 <span className="fn-tip-arrow">{isOpen ? '\u25B2' : '\u25BC'}</span>
               </div>
