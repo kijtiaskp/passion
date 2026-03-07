@@ -1,24 +1,18 @@
 import { useState, useRef, useMemo } from 'react'
+import { format } from 'date-fns'
+import { th } from 'date-fns/locale'
 import type { Expense, BankBalance, BillInfo, BalanceGroup, TxType } from '../types'
 import { BALANCE_GROUP_LABELS, TX_TYPE_LABELS, signedAmount } from '../types'
 import { EditableCell, EditableNum } from './CreditCardSection'
 import { CATEGORIES, CATEGORY_LABELS, SUBCATEGORY_LABELS, getCategoryForSub, suggestCategory } from '../categories'
+import { fmt, fmtSigned, sumBy } from '../../../utils/format'
 
 const GROUP_ORDER: BalanceGroup[] = ['bank', 'ewallet', 'cash', 'pocket']
 
 function formatDateLabel(dateStr: string): string {
   if (!dateStr || dateStr === '0000-00-00') return 'ไม่ระบุวันที่'
   const d = new Date(dateStr + 'T00:00:00')
-  const day = d.toLocaleDateString('th-TH', { weekday: 'long' })
-  const full = d.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })
-  return `${day} ${full}`
-}
-
-const fmt = (n: number) => n.toLocaleString('th-TH', { minimumFractionDigits: 2 })
-
-function fmtSigned(n: number) {
-  const prefix = n < 0 ? '' : '+'
-  return `${prefix}${fmt(n)}`
+  return format(d, 'EEEE d MMM yyyy', { locale: th })
 }
 
 function txStyle(exp: Expense) {
@@ -30,9 +24,7 @@ function txStyle(exp: Expense) {
 
 function getNow() {
   const n = new Date()
-  const date = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`
-  const time = `${String(n.getHours()).padStart(2, '0')}:${String(n.getMinutes()).padStart(2, '0')}`
-  return { date, time }
+  return { date: format(n, 'yyyy-MM-dd'), time: format(n, 'HH:mm') }
 }
 
 function AccountSelect({ value, bankAccounts, onChange }: { value: string; bankAccounts: BankBalance[]; onChange: (v: string) => void }) {
@@ -175,7 +167,7 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
     const { date, time } = getNow()
     return { name: '', qty: 1, price: 0, bank: '', date, time, txType: 'expense' as TxType }
   })
-  const total = expenses.reduce((s, e) => s + signedAmount(e), 0)
+  const total = sumBy(expenses, e => signedAmount(e))
 
   const handleUploadImage = async (billId: number, file: File) => {
     const formData = new FormData()
@@ -391,7 +383,7 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
 
       {dateGroups.map(([date, group], idx) => {
         const allItems = [...group.expenses, ...group.bills.flatMap(b => b.items)]
-        const dayTotal = allItems.reduce((s, e) => s + signedAmount(e), 0)
+        const dayTotal = sumBy(allItems, e => signedAmount(e))
         return (
         <div key={date}>
           {idx > 0 && <div className="fn-date-divider" />}
@@ -409,7 +401,7 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
           )}
 
           {group.bills.map(({ bill, items }) => {
-            const groupTotal = items.reduce((s, e) => s + signedAmount(e), 0)
+            const groupTotal = sumBy(items, e => signedAmount(e))
             const groupBank = items[0]?.bank || ''
             const isCollapsed = collapsed[bill.id] ?? false
             return (

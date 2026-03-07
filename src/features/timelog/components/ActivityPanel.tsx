@@ -1,16 +1,18 @@
 import { useState, useMemo } from 'react'
+import { format, addDays, subDays } from 'date-fns'
+import { th } from 'date-fns/locale'
+import { Icons } from '../../../components/icons'
 import { useActivities } from '../api/use-activities'
 import { activityCategories, activityCatIcons, activityFilterOptions, moodOptions, moodIcons } from '../constants'
 import { formatTime } from '../utils'
 import type { ActivityCategory, Mood } from '../types'
 
 function todayStr() {
-  return new Date().toISOString().slice(0, 10)
+  return format(new Date(), 'yyyy-MM-dd')
 }
 
 function nowTimeStr() {
-  const now = new Date()
-  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+  return format(new Date(), 'HH:mm')
 }
 
 export function ActivityPanel() {
@@ -46,16 +48,14 @@ export function ActivityPanel() {
 
   // Date navigation
   const changeDate = (delta: number) => {
-    const d = new Date(selectedDate)
-    d.setDate(d.getDate() + delta)
-    setSelectedDate(d.toISOString().slice(0, 10))
+    const d = new Date(selectedDate + 'T00:00:00')
+    const next = delta > 0 ? addDays(d, delta) : subDays(d, -delta)
+    setSelectedDate(format(next, 'yyyy-MM-dd'))
   }
 
   const isToday = selectedDate === todayStr()
 
-  const dateLabel = new Date(selectedDate + 'T00:00:00').toLocaleDateString('th-TH', {
-    weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
-  })
+  const dateLabel = format(new Date(selectedDate + 'T00:00:00'), 'EEE d MMM yyyy', { locale: th })
 
   return (
     <div className="act-panel">
@@ -160,7 +160,7 @@ export function ActivityPanel() {
                 <span className="act-card-mood">{moodIcons[a.mood]}</span>
                 <span className="act-card-time">{formatTime(a.time)}</span>
                 <button className="delete-btn" onClick={() => deleteActivity(a.id)} title="ลบ">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                  {Icons.x}
                 </button>
               </div>
               <div className="act-card-text">{a.text}</div>

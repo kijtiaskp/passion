@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { fmt } from '../../../utils/format'
 
 interface Props {
   salary: number
@@ -25,7 +26,7 @@ export function IncomeSection({ salary, carryOver, onUpdate }: Props) {
           />
         ) : (
           <span className="fn-income-value" onClick={() => setEditSalary(true)}>
-            {salary.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+            {fmt(salary)}
           </span>
         )}
       </div>
@@ -42,7 +43,7 @@ export function IncomeSection({ salary, carryOver, onUpdate }: Props) {
           />
         ) : (
           <span className="fn-income-value" onClick={() => setEditCarry(true)}>
-            {carryOver.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+            {fmt(carryOver)}
           </span>
         )}
       </div>

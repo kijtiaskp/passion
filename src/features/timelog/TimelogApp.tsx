@@ -1,4 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { format } from 'date-fns'
+import { th } from 'date-fns/locale'
+import { sumBy } from '../../utils/format'
 import { useLogs } from './api/use-logs'
 import { StatsBar } from './components/StatsBar'
 import { TimesheetBar } from './components/TimesheetBar'
@@ -17,8 +20,8 @@ export function TimelogApp() {
   useEffect(() => {
     const update = () => {
       const now = new Date()
-      setClock(now.toLocaleTimeString('th-TH'))
-      setDateLabel(now.toLocaleDateString('th-TH', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }))
+      setClock(format(now, 'HH:mm:ss'))
+      setDateLabel(format(now, 'EEE d MMM yyyy', { locale: th }))
     }
     update()
     const id = setInterval(update, 1000)
@@ -32,10 +35,10 @@ export function TimelogApp() {
     weekStart.setDate(now.getDate() - now.getDay())
     const work = logs.filter(l => l.cat !== 'leave')
     return {
-      todayHrs: work.filter(l => new Date(l.start).toDateString() === todayStr).reduce((s, l) => s + l.hrs, 0),
-      weekHrs: work.filter(l => new Date(l.start) >= weekStart).reduce((s, l) => s + l.hrs, 0),
-      allHrs: work.reduce((s, l) => s + l.hrs, 0),
-      leaveHrs: logs.filter(l => l.cat === 'leave').reduce((s, l) => s + l.hrs, 0),
+      todayHrs: sumBy(work.filter(l => new Date(l.start).toDateString() === todayStr), l => l.hrs),
+      weekHrs: sumBy(work.filter(l => new Date(l.start) >= weekStart), l => l.hrs),
+      allHrs: sumBy(work, l => l.hrs),
+      leaveHrs: sumBy(logs.filter(l => l.cat === 'leave'), l => l.hrs),
     }
   }, [logs])
 

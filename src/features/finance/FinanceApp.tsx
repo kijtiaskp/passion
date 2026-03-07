@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { addMonths, format } from 'date-fns'
 import { useFinance } from './api/use-finance'
 import { SummaryBar } from './components/SummaryBar'
 import { IncomeSection } from './components/IncomeSection'
@@ -11,20 +12,23 @@ import { HomeLoanSection } from './components/HomeLoanSection'
 import { FinanceTips } from './components/FinanceTips'
 import './finance.css'
 
+const THAI_MONTH_NAMES = [
+  'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
+  'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.',
+]
+
+function parseMonth(m: string) {
+  const [y, mo] = m.split('-').map(Number)
+  return new Date(y, mo - 1, 1)
+}
+
 function formatMonthLabel(month: string) {
-  const [y, m] = month.split('-').map(Number)
-  const thaiYear = y + 543
-  const monthNames = [
-    'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
-    'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.',
-  ]
-  return `${monthNames[m - 1]} ${thaiYear}`
+  const d = parseMonth(month)
+  return `${THAI_MONTH_NAMES[d.getMonth()]} ${d.getFullYear() + 543}`
 }
 
 function shiftMonth(month: string, delta: number) {
-  const [y, m] = month.split('-').map(Number)
-  const d = new Date(y, m - 1 + delta, 1)
-  return d.toISOString().slice(0, 7)
+  return format(addMonths(parseMonth(month), delta), 'yyyy-MM')
 }
 
 const TABS = [

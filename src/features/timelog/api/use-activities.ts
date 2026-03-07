@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
+import { format } from 'date-fns'
 import type { ActivityEntry, ActivityCategory, Mood } from '../types'
 
 const API = '/api'
 
 function todayStr() {
-  return new Date().toISOString().slice(0, 10)
+  return format(new Date(), 'yyyy-MM-dd')
 }
 
 export function useActivities() {

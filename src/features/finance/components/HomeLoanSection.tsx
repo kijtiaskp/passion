@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { LoanItem } from '../types'
 import { EditableCell, EditableNum } from './CreditCardSection'
+import { fmt, sumBy } from '../../../utils/format'
 
 interface Props {
   loans: LoanItem[]
@@ -12,7 +13,7 @@ interface Props {
 export function HomeLoanSection({ loans, onAdd, onUpdate, onDelete }: Props) {
   const [adding, setAdding] = useState(false)
   const [form, setForm] = useState({ name: '', amount: 0 })
-  const total = loans.reduce((s, l) => s + l.amount, 0)
+  const total = sumBy(loans, l => l.amount)
 
   const handleAdd = () => {
     if (!form.name) return
@@ -25,7 +26,7 @@ export function HomeLoanSection({ loans, onAdd, onUpdate, onDelete }: Props) {
     <div className="fn-section">
       <div className="fn-section-header">
         <h3>บ้าน</h3>
-        <span className="fn-section-total">{total.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</span>
+        <span className="fn-section-total">{fmt(total)}</span>
       </div>
 
       {loans.length > 0 && (

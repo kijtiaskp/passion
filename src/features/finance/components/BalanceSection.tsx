@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { BankBalance, Expense, BalanceGroup } from '../types'
 import { BALANCE_GROUP_LABELS, balanceImpact } from '../types'
 import { EditableCell, EditableNum } from './CreditCardSection'
+import { fmt, sumBy } from '../../../utils/format'
 
 interface Props {
   balances: BankBalance[]
@@ -16,12 +17,12 @@ const GROUP_ORDER: BalanceGroup[] = ['bank', 'ewallet', 'cash', 'pocket']
 export function BalanceSection({ balances, expenses, onAdd, onUpdate, onDelete }: Props) {
   const [adding, setAdding] = useState(false)
   const [form, setForm] = useState({ name: '', amount: 0, group: 'bank' as BalanceGroup })
-  const total = balances.reduce((s, b) => s + b.amount, 0)
+  const total = sumBy(balances, b => b.amount)
 
   const accountImpact = (name: string) =>
-    expenses.reduce((s, e) => s + balanceImpact(e, name), 0)
+    sumBy(expenses, e => balanceImpact(e, name))
 
-  const totalRemaining = balances.reduce((s, b) => s + b.amount + accountImpact(b.name), 0)
+  const totalRemaining = sumBy(balances, b => b.amount + accountImpact(b.name))
 
   const handleAdd = () => {
     if (!form.name) return
@@ -40,17 +41,17 @@ export function BalanceSection({ balances, expenses, onAdd, onUpdate, onDelete }
     <div className="fn-section">
       <div className="fn-section-header">
         <h3>ยอดคงเหลือต้นเดือน</h3>
-        <span className="fn-section-total">{totalRemaining.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</span>
+        <span className="fn-section-total">{fmt(totalRemaining)}</span>
       </div>
 
       {grouped.map(({ group, label, items }) => {
-        const groupRemaining = items.reduce((s, b) => s + b.amount + accountImpact(b.name), 0)
+        const groupRemaining = sumBy(items, b => b.amount + accountImpact(b.name))
         return (
           <div key={group} className="fn-balance-group">
             <div className="fn-balance-group-header">
               <span className="fn-balance-group-label">{label}</span>
               <span className={`fn-balance-group-total ${groupRemaining < 0 ? 'fn-remaining-danger' : ''}`}>
-                {groupRemaining.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                {fmt(groupRemaining)}
               </span>
             </div>
             <table className="fn-table">
@@ -87,9 +88,9 @@ export function BalanceSection({ balances, expenses, onAdd, onUpdate, onDelete }
                       <td>
                         <EditableNum value={item.amount} onChange={v => onUpdate(item.id, { amount: v })} />
                       </td>
-                      <td className="fn-spent">{impact.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                      <td className="fn-spent">{fmt(impact)}</td>
                       <td className={`fn-remaining ${remaining < 0 ? 'fn-remaining-danger' : ''}`}>
-                        {remaining.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                        {fmt(remaining)}
                       </td>
                       <td>
                         <button className="fn-delete-btn" onClick={() => onDelete(item.id)}>×</button>

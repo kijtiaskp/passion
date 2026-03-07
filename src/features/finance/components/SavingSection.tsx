@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { SavingItem } from '../types'
 import { EditableCell, EditableNum } from './CreditCardSection'
+import { fmt, sumBy } from '../../../utils/format'
 
 interface Props {
   savings: SavingItem[]
@@ -12,7 +13,7 @@ interface Props {
 export function SavingSection({ savings, onAdd, onUpdate, onDelete }: Props) {
   const [adding, setAdding] = useState(false)
   const [form, setForm] = useState({ name: '', amount: 0 })
-  const total = savings.reduce((s, sv) => s + sv.amount, 0)
+  const total = sumBy(savings, sv => sv.amount)
 
   const handleAdd = () => {
     if (!form.name) return
@@ -25,7 +26,7 @@ export function SavingSection({ savings, onAdd, onUpdate, onDelete }: Props) {
     <div className="fn-section fn-section-half">
       <div className="fn-section-header">
         <h3>เงินออมอนาคต</h3>
-        <span className="fn-section-total">{total.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</span>
+        <span className="fn-section-total">{fmt(total)}</span>
       </div>
 
       {savings.length > 0 && (

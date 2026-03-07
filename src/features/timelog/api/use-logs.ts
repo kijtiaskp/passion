@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
+import { format } from 'date-fns'
 import type { LogEntry } from '../types'
 
 const API = '/api'
 
 function currentMonth() {
-  return new Date().toISOString().slice(0, 7)
+  return format(new Date(), 'yyyy-MM')
 }
 
 export function useLogs() {

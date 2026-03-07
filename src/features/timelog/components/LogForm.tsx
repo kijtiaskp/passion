@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { format } from 'date-fns'
 import { Icons } from '../../../components/icons'
 import { useTimer } from '../hooks/use-timer'
 import { categories, leaveOptions } from '../constants'
@@ -15,7 +16,7 @@ export function LogForm({ projects, onAddLog, onAddProject }: Props) {
   const [selectedProject, setSelectedProject] = useState('')
   const [taskInput, setTaskInput] = useState('')
   const [catInput, setCatInput] = useState<Category>('dev')
-  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [selectedDate, setSelectedDate] = useState(() => format(new Date(), 'yyyy-MM-dd'))
   const [startTime, setStartTime] = useState(() => getInitialTime().start)
   const [endTime, setEndTime] = useState(() => getInitialTime().end)
   const [leaveType, setLeaveType] = useState<LeaveType>('full')

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { CreditCard, Subscription } from '../types'
+import { fmt, sumBy } from '../../../utils/format'
 
 interface Props {
   cards: CreditCard[]
@@ -11,14 +12,6 @@ interface Props {
 const COL_WIDTHS = ['18%', '12%', '12%', '12%', '12%', '7%', '7%', '12%', '4%']
 const EMPTY_CARD = { name: '', creditLimit: 0, used: 0, willPay: 0, min: 0, max: 0, subscriptionTotal: 0 }
 const EMPTY_SUB = { name: '', amount: 0, billingDay: 1 }
-
-function fmt(n: number) {
-  return n.toLocaleString('th-TH', { minimumFractionDigits: 2 })
-}
-
-function sumBy<T>(items: T[], fn: (item: T) => number) {
-  return items.reduce((s, item) => s + fn(item), 0)
-}
 
 export function CreditCardSection({ cards, onAdd, onUpdate, onDelete }: Props) {
   const [adding, setAdding] = useState(false)

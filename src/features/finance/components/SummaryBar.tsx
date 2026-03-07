@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { format, getDaysInMonth } from 'date-fns'
 import {
   BarChart as RechartsBarChart,
   Bar,
@@ -9,35 +10,24 @@ import {
   Cell,
 } from 'recharts'
 import type { FinanceMonth, Expense } from '../types'
+import { fmt, sumBy } from '../../../utils/format'
 
 interface Props {
   data: FinanceMonth
 }
 
-function fmt(n: number) {
-  return n.toLocaleString('th-TH', { minimumFractionDigits: 2 })
-}
-
 function useFinanceSummary(data: FinanceMonth) {
-  const txIncome = data.expenses
-    .filter(e => e.txType === 'income')
-    .reduce((s, e) => s + e.amount, 0)
+  const txIncome = sumBy(data.expenses.filter(e => e.txType === 'income'), e => e.amount)
   const totalIncome = data.income.salary + data.income.carryOver + txIncome
 
-  const txExpense = data.expenses
-    .filter(e => (e.txType || 'expense') === 'expense')
-    .reduce((s, e) => s + e.amount, 0)
-  const totalDebtsOwe = data.debts
-    .filter(d => !d.paid && (d.direction || 'owe') === 'owe')
-    .reduce((s, d) => s + d.amount, 0)
-  const totalLoans = data.homeLoan.reduce((s, l) => s + l.amount, 0)
+  const txExpense = sumBy(data.expenses.filter(e => (e.txType || 'expense') === 'expense'), e => e.amount)
+  const totalDebtsOwe = sumBy(data.debts.filter(d => !d.paid && (d.direction || 'owe') === 'owe'), d => d.amount)
+  const totalLoans = sumBy(data.homeLoan, l => l.amount)
   const totalExpense = txExpense + totalDebtsOwe + totalLoans
 
-  const totalSavings = data.savings.reduce((s, sv) => s + sv.amount, 0)
-  const totalDebtsLent = data.debts
-    .filter(d => !d.paid && d.direction === 'lent')
-    .reduce((s, d) => s + d.amount, 0)
-  const totalAssets = (data.bankBalances ?? []).reduce((s, b) => s + b.amount, 0)
+  const totalSavings = sumBy(data.savings, sv => sv.amount)
+  const totalDebtsLent = sumBy(data.debts.filter(d => !d.paid && d.direction === 'lent'), d => d.amount)
+  const totalAssets = sumBy(data.bankBalances ?? [], b => b.amount)
   const netBalance = totalAssets + totalIncome - totalExpense - totalSavings
 
   return { totalIncome, totalExpense, totalSavings, totalDebtsLent, totalAssets, netBalance }
@@ -48,23 +38,19 @@ const PERIOD_LABELS: Record<Period, string> = { day: 'วัน', week: 'สั�
 
 const MONTH_NAMES = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.']
 
-function daysInMonth(year: number, month: number) {
-  return new Date(year, month, 0).getDate()
-}
-
 function pad2(n: number) { return String(n).padStart(2, '0') }
 
 function buildAllSlots(month: string, period: Period): { key: string; label: string }[] {
   const [y, m] = month.split('-').map(Number)
   if (period === 'day') {
-    const days = daysInMonth(y, m)
+    const days = getDaysInMonth(new Date(y, m - 1))
     return Array.from({ length: days }, (_, i) => {
       const d = i + 1
       return { key: `${month}-${pad2(d)}`, label: `${d}` }
     })
   }
   if (period === 'week') {
-    const days = daysInMonth(y, m)
+    const days = getDaysInMonth(new Date(y, m - 1))
     const slots: { key: string; label: string }[] = []
     for (let d = 1; d <= days; d += 7) {
       const end = Math.min(d + 6, days)
@@ -103,7 +89,7 @@ function groupByPeriod(expenses: Expense[], period: Period, month: string): BarG
   const buckets = new Map<string, { income: number; expense: number; label: string; future: boolean }>()
 
   const today = new Date()
-  const todayStr = `${today.getFullYear()}-${pad2(today.getMonth() + 1)}-${pad2(today.getDate())}`
+  const todayStr = format(today, 'yyyy-MM-dd')
 
   for (const s of slots) {
     let future = false

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Debt, DebtDirection } from '../types'
 import { EditableCell, EditableNum } from './CreditCardSection'
+import { fmt, sumBy } from '../../../utils/format'
 
 interface Props {
   debts: Debt[]
@@ -54,8 +55,8 @@ export function DebtSection({ debts, onAdd, onUpdate, onDelete }: Props) {
 
   const oweDebts = debts.filter(d => (d.direction || 'owe') === 'owe')
   const lentDebts = debts.filter(d => d.direction === 'lent')
-  const oweTotal = oweDebts.filter(d => !d.paid).reduce((s, d) => s + d.amount, 0)
-  const lentTotal = lentDebts.filter(d => !d.paid).reduce((s, d) => s + d.amount, 0)
+  const oweTotal = sumBy(oweDebts.filter(d => !d.paid), d => d.amount)
+  const lentTotal = sumBy(lentDebts.filter(d => !d.paid), d => d.amount)
 
   const handleAdd = (direction: DebtDirection) => {
     if (!form.name) return
@@ -86,7 +87,7 @@ export function DebtSection({ debts, onAdd, onUpdate, onDelete }: Props) {
       <div className="fn-debt-sub">
         <div className="fn-debt-sub-header">
           <span className="fn-debt-sub-label fn-debt-owe">เราติดหนี้เขา</span>
-          <span className="fn-section-total">{oweTotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</span>
+          <span className="fn-section-total">{fmt(oweTotal)}</span>
         </div>
         <DebtTable debts={oweDebts} onUpdate={onUpdate} onDelete={onDelete} />
         {addRow('owe')}
@@ -95,7 +96,7 @@ export function DebtSection({ debts, onAdd, onUpdate, onDelete }: Props) {
       <div className="fn-debt-sub">
         <div className="fn-debt-sub-header">
           <span className="fn-debt-sub-label fn-debt-lent">เขาติดหนี้เรา</span>
-          <span className="fn-section-total">{lentTotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</span>
+          <span className="fn-section-total">{fmt(lentTotal)}</span>
         </div>
         <DebtTable debts={lentDebts} onUpdate={onUpdate} onDelete={onDelete} />
         {addRow('lent')}

@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { format } from 'date-fns'
 import type { FinanceMonth, CreditCard, Expense, Debt, SavingItem, LoanItem, BankBalance, BillInfo } from '../types'
 import { emptyFinanceMonth } from '../types'
 
 const API = '/api'
 
 function currentMonth() {
-  return new Date().toISOString().slice(0, 7)
+  return format(new Date(), 'yyyy-MM')
 }
 
 export function useFinance() {

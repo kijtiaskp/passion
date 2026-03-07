@@ -2,6 +2,13 @@ import { useState, useEffect, useRef } from 'react'
 
 type AddLogFn = (task: string, cat: string, project: string, start: Date, end: Date, hrs: number) => void
 
+function formatElapsed(totalSeconds: number): string {
+  const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0')
+  const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0')
+  const s = String(totalSeconds % 60).padStart(2, '0')
+  return `${h}:${m}:${s}`
+}
+
 export function useTimer(addLog: AddLogFn) {
   const [timerStart, setTimerStart] = useState<Date | null>(null)
   const [timerDisplay, setTimerDisplay] = useState('00:00:00')
@@ -13,9 +20,7 @@ export function useTimer(addLog: AddLogFn) {
     if (timerStart) {
       intervalRef.current = setInterval(() => {
         const d = Math.floor((Date.now() - timerStart.getTime()) / 1000)
-        setTimerDisplay(
-          `${String(Math.floor(d / 3600)).padStart(2, '0')}:${String(Math.floor((d % 3600) / 60)).padStart(2, '0')}:${String(d % 60).padStart(2, '0')}`
-        )
+        setTimerDisplay(formatElapsed(d))
       }, 1000)
     }
     return () => {

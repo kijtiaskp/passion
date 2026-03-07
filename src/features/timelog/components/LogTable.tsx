@@ -1,5 +1,9 @@
 import { useState, useMemo, Fragment } from 'react'
+import { addMonths, subMonths, format } from 'date-fns'
+import { th } from 'date-fns/locale'
+import clsx from 'clsx'
 import { Icons } from '../../../components/icons'
+import { sumBy } from '../../../utils/format'
 import { catLabels, catIcons, filterOptions, categories } from '../constants'
 import { formatHrs, formatDays, formatTime, formatDate, formatDayName } from '../utils'
 import type { LogEntry, Category } from '../types'
@@ -23,7 +27,7 @@ function EditModal({ entry, projects, onSave, onClose }: {
 }) {
   const startDt = new Date(entry.start)
   const endDt = new Date(entry.end)
-  const toTime = (d: Date) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  const toTime = (d: Date) => format(d, 'HH:mm')
 
   const [project, setProject] = useState(entry.project || '')
   const [task, setTask] = useState(entry.task)
@@ -91,21 +95,21 @@ function EditModal({ entry, projects, onSave, onClose }: {
   )
 }
 
-function prevMonth(m: string) {
+function parseMonth(m: string) {
   const [y, mo] = m.split('-').map(Number)
-  const d = new Date(y, mo - 2, 1)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+  return new Date(y, mo - 1, 1)
+}
+
+function prevMonth(m: string) {
+  return format(subMonths(parseMonth(m), 1), 'yyyy-MM')
 }
 
 function nextMonth(m: string) {
-  const [y, mo] = m.split('-').map(Number)
-  const d = new Date(y, mo, 1)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+  return format(addMonths(parseMonth(m), 1), 'yyyy-MM')
 }
 
 function formatMonth(m: string) {
-  const [y, mo] = m.split('-').map(Number)
-  return new Date(y, mo - 1, 1).toLocaleDateString('th-TH', { month: 'long', year: 'numeric' })
+  return format(parseMonth(m), 'LLLL yyyy', { locale: th })
 }
 
 export function LogTable({ logs, loading, selectedMonth, onMonthChange, onDelete, onEdit, onClone, projects }: Props) {
@@ -166,7 +170,7 @@ export function LogTable({ logs, loading, selectedMonth, onMonthChange, onDelete
     })
   }
 
-  const isCurrentMonth = selectedMonth === new Date().toISOString().slice(0, 7)
+  const isCurrentMonth = selectedMonth === format(new Date(), 'yyyy-MM')
 
   return (
     <>
@@ -195,7 +199,7 @@ export function LogTable({ logs, loading, selectedMonth, onMonthChange, onDelete
         {filterOptions.map(f => (
           <button
             key={f.value}
-            className={`filter-btn${currentFilter === f.value ? ' active' : ''}`}
+            className={clsx('filter-btn', currentFilter === f.value && 'active')}
             onClick={() => setCurrentFilter(f.value)}
           >
             {f.label}
@@ -247,8 +251,8 @@ export function LogTable({ logs, loading, selectedMonth, onMonthChange, onDelete
             </tr>
           ) : (
             Object.entries(grouped).map(([date, { iso, items }]) => {
-              const workTotal = items.filter(i => i.cat !== 'leave').reduce((s, i) => s + i.hrs, 0)
-              const leaveTotal = items.filter(i => i.cat === 'leave').reduce((s, i) => s + i.hrs, 0)
+              const workTotal = sumBy(items.filter(i => i.cat !== 'leave'), i => i.hrs)
+              const leaveTotal = sumBy(items.filter(i => i.cat === 'leave'), i => i.hrs)
               return (
                 <Fragment key={date}>
                   <tr className="date-divider"><td colSpan={8}></td></tr>
