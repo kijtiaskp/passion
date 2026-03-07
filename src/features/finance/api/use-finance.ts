@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { format } from 'date-fns'
 import type { FinanceMonth, CreditCard, Expense, Debt, SavingItem, LoanItem, BankBalance, BillInfo } from '../types'
 import { emptyFinanceMonth } from '../types'
@@ -9,12 +9,19 @@ function currentMonth() {
   return format(new Date(), 'yyyy-MM')
 }
 
+async function api<T>(url: string, method: string, body?: unknown): Promise<T> {
+  const res = await fetch(`${API}/finance${url}`, {
+    method,
+    headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  })
+  return res.json()
+}
+
 export function useFinance() {
   const [data, setData] = useState<FinanceMonth>(emptyFinanceMonth(currentMonth()))
   const [loading, setLoading] = useState(true)
   const [selectedMonth, setSelectedMonth] = useState(currentMonth)
-  const saveTimer = useRef<ReturnType<typeof setTimeout>>()
-  const dirty = useRef(false)
 
   // Fetch on month change
   useEffect(() => {
@@ -24,27 +31,14 @@ export function useFinance() {
       .then((d: FinanceMonth) => { setData(d); setLoading(false) })
   }, [selectedMonth])
 
-  // Debounced auto-save when data changes
-  useEffect(() => {
-    if (!dirty.current || loading) return
-    dirty.current = false
-    clearTimeout(saveTimer.current)
-    saveTimer.current = setTimeout(() => {
-      fetch(`${API}/finance`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
-    }, 500)
-  }, [data, loading])
-
-  const markDirty = useCallback(() => { dirty.current = true }, [])
-
   // Income
   const updateIncome = useCallback((field: 'salary' | 'carryOver', value: number) => {
-    markDirty()
-    setData(prev => ({ ...prev, income: { ...prev.income, [field]: value } }))
-  }, [markDirty])
+    setData(prev => {
+      const income = { ...prev.income, [field]: value }
+      api(`/${prev.month}/income`, 'PATCH', { [field]: value })
+      return { ...prev, income }
+    })
+  }, [])
 
   // Generic CRUD helpers
   const addItem = useCallback(<T extends { id: number }>(
@@ -52,32 +46,33 @@ export function useFinance() {
     item: Omit<T, 'id'>
   ) => {
     const id = Date.now()
-    markDirty()
+    const newItem = { ...item, id } as T
     setData(prev => {
       const list = prev[key] as T[]
-      return { ...prev, [key]: [...list, { ...item, id }] }
+      return { ...prev, [key]: [...list, newItem] }
     })
-  }, [markDirty])
+    api(`/${data.month}/${key}`, 'POST', newItem)
+  }, [data.month])
 
   const updateItem = useCallback(<T extends { id: number }>(
     key: keyof FinanceMonth,
     id: number,
     changes: Partial<T>
   ) => {
-    markDirty()
     setData(prev => {
       const list = prev[key] as T[]
       return { ...prev, [key]: list.map(item => item.id === id ? { ...item, ...changes } : item) }
     })
-  }, [markDirty])
+    api(`/${data.month}/${key}/${id}`, 'PATCH', changes)
+  }, [data.month])
 
   const deleteItem = useCallback((key: keyof FinanceMonth, id: number) => {
-    markDirty()
     setData(prev => {
       const list = prev[key] as Array<{ id: number }>
       return { ...prev, [key]: list.filter(item => item.id !== id) }
     })
-  }, [markDirty])
+    api(`/${data.month}/${key}/${id}`, 'DELETE')
+  }, [data.month])
 
   // Typed helpers
   const addCreditCard = (card: Omit<CreditCard, 'id'>) => addItem<CreditCard>('creditCards', card)
@@ -87,35 +82,33 @@ export function useFinance() {
   const addExpense = (expense: Omit<Expense, 'id'>) => addItem<Expense>('expenses', expense)
   const addBillWithExpenses = useCallback((bill: Omit<BillInfo, 'id'>, items: Omit<Expense, 'id' | 'billId'>[]) => {
     const billId = Date.now()
-    markDirty()
-    setData(prev => {
-      const newBill = { ...bill, id: billId }
-      const newExpenses = items.map((item, i) => ({ ...item, billId, id: billId + i + 1 }))
-      return {
-        ...prev,
-        bills: [...(prev.bills ?? []), newBill],
-        expenses: [...prev.expenses, ...newExpenses],
-      }
-    })
-  }, [markDirty])
+    const newBill = { ...bill, id: billId } as BillInfo
+    const newExpenses = items.map((item, i) => ({ ...item, billId, id: billId + i + 1 }) as Expense)
+    setData(prev => ({
+      ...prev,
+      bills: [...(prev.bills ?? []), newBill],
+      expenses: [...prev.expenses, ...newExpenses],
+    }))
+    api(`/${data.month}/bills-with-expenses`, 'POST', { bill: newBill, expenses: newExpenses })
+  }, [data.month])
   const updateExpense = (id: number, changes: Partial<Expense>) => updateItem<Expense>('expenses', id, changes)
   const updateExpensesByBill = useCallback((billId: number, changes: Partial<Expense>) => {
-    markDirty()
     setData(prev => ({
       ...prev,
       expenses: prev.expenses.map(e => e.billId === billId ? { ...e, ...changes } : e),
     }))
-  }, [markDirty])
+    api(`/${data.month}/expenses-by-bill/${billId}`, 'PATCH', changes)
+  }, [data.month])
   const deleteExpense = (id: number) => deleteItem('expenses', id)
   const updateBill = (id: number, changes: Partial<BillInfo>) => updateItem<BillInfo>('bills', id, changes)
   const deleteBill = useCallback((id: number) => {
-    markDirty()
     setData(prev => ({
       ...prev,
       bills: (prev.bills ?? []).filter(b => b.id !== id),
       expenses: prev.expenses.filter(e => e.billId !== id),
     }))
-  }, [markDirty])
+    api(`/${data.month}/bills-with-expenses/${id}`, 'DELETE')
+  }, [data.month])
 
   const addDebt = (debt: Omit<Debt, 'id'>) => addItem<Debt>('debts', debt)
   const updateDebt = (id: number, changes: Partial<Debt>) => updateItem<Debt>('debts', id, changes)

@@ -88,5 +88,19 @@ export function useLogs() {
     })
   }, [])
 
-  return { logs, projects, loading, selectedMonth, setSelectedMonth, addLog, cloneLog, updateLog, deleteLog, addProject }
+  const renameProject = useCallback(async (oldName: string, newName: string) => {
+    setProjects(prev => prev.map(p => p === oldName ? newName : p))
+    await fetch(`${API}/projects`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ oldName, newName }),
+    })
+  }, [])
+
+  const deleteProject = useCallback(async (name: string) => {
+    setProjects(prev => prev.filter(p => p !== name))
+    await fetch(`${API}/projects/${encodeURIComponent(name)}`, { method: 'DELETE' })
+  }, [])
+
+  return { logs, projects, loading, selectedMonth, setSelectedMonth, addLog, cloneLog, updateLog, deleteLog, addProject, renameProject, deleteProject }
 }

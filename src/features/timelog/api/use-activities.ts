@@ -41,6 +41,18 @@ export function useActivities() {
     })
   }, [selectedDate])
 
+  const updateActivity = useCallback(async (id: number, changes: Partial<ActivityEntry>) => {
+    const entry = activities.find(a => a.id === id)
+    if (!entry) return
+    const date = entry.time.slice(0, 10)
+    setActivities(prev => prev.map(a => a.id === id ? { ...a, ...changes } : a))
+    await fetch(`${API}/activity/${id}?date=${date}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(changes),
+    })
+  }, [activities])
+
   const deleteActivity = useCallback(async (id: number) => {
     const entry = activities.find(a => a.id === id)
     if (!entry) return
@@ -49,5 +61,5 @@ export function useActivities() {
     await fetch(`${API}/activity/${id}?date=${date}`, { method: 'DELETE' })
   }, [activities])
 
-  return { activities, loading, selectedDate, setSelectedDate, addActivity, deleteActivity }
+  return { activities, loading, selectedDate, setSelectedDate, addActivity, updateActivity, deleteActivity }
 }

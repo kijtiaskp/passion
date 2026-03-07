@@ -30,6 +30,20 @@ activity.post('/', async (c) => {
   return c.json(entry, 201)
 })
 
+// PATCH /api/activity/:id?date=2026-03-05
+activity.patch('/:id', async (c) => {
+  const id = Number(c.req.param('id'))
+  const date = c.req.query('date')
+  if (!date) return c.json({ error: 'date query required' }, 400)
+  const changes = await c.req.json<Partial<ActivityEntry>>()
+  const entries = readJson<ActivityEntry[]>(dateFile(date), [])
+  const idx = entries.findIndex(e => e.id === id)
+  if (idx === -1) return c.json({ error: 'not found' }, 404)
+  entries[idx] = { ...entries[idx], ...changes }
+  writeJson(dateFile(date), entries)
+  return c.json(entries[idx])
+})
+
 // DELETE /api/activity/:id?date=2026-03-05
 activity.delete('/:id', (c) => {
   const id = Number(c.req.param('id'))
