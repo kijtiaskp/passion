@@ -7,7 +7,7 @@ import projects from './routes/projects'
 import finance from './routes/finance'
 import activity from './routes/activity'
 
-const app = new Hono()
+const app = new Hono({ strict: false })
 
 app.use('*', cors({ origin: 'http://localhost:5173' }))
 

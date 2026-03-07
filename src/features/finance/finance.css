@@ -1186,6 +1186,107 @@ td.fn-expense-total {
   flex-shrink: 0;
 }
 
+/* ─── Pie Chart ──────────────────────────────────── */
+.fn-piechart {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+}
+
+.fn-piechart-header {
+  margin-bottom: 12px;
+}
+
+.fn-piechart-content {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.fn-piechart-chart {
+  position: relative;
+  flex-shrink: 0;
+  width: 180px;
+}
+
+.fn-piechart-chart .recharts-tooltip-wrapper {
+  z-index: 10 !important;
+}
+
+.fn-piechart-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.fn-piechart-center-label {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.fn-piechart-center-value {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.fn-piechart-legend {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.fn-piechart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.fn-piechart-legend-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+}
+
+.fn-piechart-legend-pct {
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--muted);
+  flex-shrink: 0;
+  width: 48px;
+  text-align: right;
+}
+
+.fn-piechart-legend-val {
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--text);
+  flex-shrink: 0;
+  text-align: right;
+}
+
+@media (max-width: 560px) {
+  .fn-piechart-content {
+    flex-direction: column;
+  }
+}
+
 .fn-category-select {
   font-size: 12px;
   min-width: 100px;
