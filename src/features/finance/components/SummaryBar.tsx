@@ -1,4 +1,13 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import {
+  BarChart as RechartsBarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+} from 'recharts'
 import type { FinanceMonth, Expense } from '../types'
 
 interface Props {
@@ -7,11 +16,6 @@ interface Props {
 
 function fmt(n: number) {
   return n.toLocaleString('th-TH', { minimumFractionDigits: 2 })
-}
-
-function fmtShort(n: number) {
-  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
-  return String(Math.round(n))
 }
 
 function useFinanceSummary(data: FinanceMonth) {
@@ -41,13 +45,6 @@ function useFinanceSummary(data: FinanceMonth) {
 
 type Period = 'day' | 'week' | 'month' | 'year'
 const PERIOD_LABELS: Record<Period, string> = { day: 'วัน', week: 'สัปดาห์', month: 'เดือน', year: 'ปี' }
-
-function getWeekKey(dateStr: string) {
-  const d = new Date(dateStr)
-  const jan1 = new Date(d.getFullYear(), 0, 1)
-  const week = Math.ceil(((d.getTime() - jan1.getTime()) / 86400000 + jan1.getDay() + 1) / 7)
-  return `W${week}`
-}
 
 const MONTH_NAMES = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.']
 
@@ -94,7 +91,14 @@ function getWeekSlotKey(dateStr: string, month: string) {
   return `${month}-W${Math.ceil(d / 7)}`
 }
 
-function groupByPeriod(expenses: Expense[], period: Period, month: string) {
+interface BarGroup {
+  income: number
+  expense: number
+  label: string
+  future: boolean
+}
+
+function groupByPeriod(expenses: Expense[], period: Period, month: string): BarGroup[] {
   const slots = buildAllSlots(month, period)
   const buckets = new Map<string, { income: number; expense: number; label: string; future: boolean }>()
 
@@ -137,17 +141,48 @@ function groupByPeriod(expenses: Expense[], period: Period, month: string) {
     .map(([, v]) => v)
 }
 
-interface BarGroup {
-  income: number
-  expense: number
-  label: string
-  future: boolean
+const COLORS: Record<string, string> = {
+  income: '#00ff88',
+  incomeFuture: '#1c1c2e',
+  expense: '#ff4466',
+  expenseFuture: '#1c1c2e',
 }
+
+function CustomTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null
+  const income = payload.find((p: any) => p.dataKey === 'income')?.value ?? 0
+  const expense = payload.find((p: any) => p.dataKey === 'expense')?.value ?? 0
+  if (income === 0 && expense === 0) return null
+
+  return (
+    <div className="fn-barchart-tooltip">
+      <div className="fn-barchart-tooltip-label">{label}</div>
+      {income > 0 && (
+        <div className="fn-barchart-tooltip-row">
+          <span className="fn-dot fn-dot-income" />
+          <span>รายรับ</span>
+          <span className="fn-barchart-tooltip-val">{fmt(income)}</span>
+        </div>
+      )}
+      {expense > 0 && (
+        <div className="fn-barchart-tooltip-row">
+          <span className="fn-dot fn-dot-expense" />
+          <span>รายจ่าย</span>
+          <span className="fn-barchart-tooltip-val">{fmt(expense)}</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+const BAR_KEYS = ['income', 'expense'] as const
 
 function BarChart({ data }: Props) {
   const [period, setPeriod] = useState<Period>('day')
-  const groups: BarGroup[] = groupByPeriod(data.expenses, period, data.month)
-  const max = Math.max(...groups.flatMap(g => [g.income, g.expense]), 1)
+  const groups = useMemo(
+    () => groupByPeriod(data.expenses, period, data.month),
+    [data.expenses, period, data.month],
+  )
 
   return (
     <div className="fn-barchart">
@@ -171,29 +206,29 @@ function BarChart({ data }: Props) {
         {groups.length === 0 ? (
           <div className="fn-barchart-empty">ไม่มีข้อมูล</div>
         ) : (
-          <div className="fn-barchart-bars">
-            {groups.map((g, i) => (
-              <div key={i} className={`fn-barchart-col ${g.future ? 'fn-barchart-future' : ''}`}>
-                <div className="fn-barchart-pair">
-                  <div className="fn-barchart-bar-wrap" title={`รายรับ ${fmt(g.income)}`}>
-                    <div
-                      className="fn-barchart-bar fn-barchart-bar-income"
-                      style={{ height: `${(g.income / max) * 100}%` }}
-                    />
-                    {g.income > 0 && <span className="fn-barchart-bar-val">{fmtShort(g.income)}</span>}
-                  </div>
-                  <div className="fn-barchart-bar-wrap" title={`รายจ่าย ${fmt(g.expense)}`}>
-                    <div
-                      className="fn-barchart-bar fn-barchart-bar-expense"
-                      style={{ height: `${(g.expense / max) * 100}%` }}
-                    />
-                    {g.expense > 0 && <span className="fn-barchart-bar-val">{fmtShort(g.expense)}</span>}
-                  </div>
-                </div>
-                <span className="fn-barchart-label">{g.label}</span>
-              </div>
-            ))}
-          </div>
+          <ResponsiveContainer width="100%" height="100%">
+            <RechartsBarChart data={groups} barGap={1} barSize={10}>
+              <XAxis
+                dataKey="label"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#555570', fontSize: 11 }}
+                interval={period === 'day' ? 1 : 0}
+              />
+              <YAxis hide />
+              <Tooltip
+                content={<CustomTooltip />}
+                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+              />
+              {BAR_KEYS.map(key => (
+                <Bar key={key} dataKey={key} radius={[4, 4, 0, 0]}>
+                  {groups.map((g, i) => (
+                    <Cell key={i} fill={g.future ? COLORS[`${key}Future`] : COLORS[key]} />
+                  ))}
+                </Bar>
+              ))}
+            </RechartsBarChart>
+          </ResponsiveContainer>
         )}
       </div>
     </div>
