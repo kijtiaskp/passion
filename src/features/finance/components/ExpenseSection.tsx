@@ -210,13 +210,11 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
   const [collapsed, setCollapsed] = useState<Record<number, boolean>>({})
   const toggleCollapse = (id: number) => setCollapsed(prev => ({ ...prev, [id]: !prev[id] }))
 
-  const dateGroups = useMemo(() => {
-    const sortDesc = (a: { date?: string; time?: string }, b: { date?: string; time?: string }) => {
-      const da = a.date || '0000-00-00', db = b.date || '0000-00-00'
-      if (da !== db) return db.localeCompare(da)
-      return (b.time || '00:00').localeCompare(a.time || '00:00')
-    }
+  type DateItem =
+    | { kind: 'expense'; expense: Expense }
+    | { kind: 'bill'; bill: BillInfo; items: Expense[] }
 
+  const dateGroups = useMemo(() => {
     const expByBill = new Map<number, Expense[]>()
     const ungrouped: Expense[] = []
     for (const e of expenses) {
@@ -228,17 +226,22 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
         ungrouped.push(e)
       }
     }
-    ungrouped.sort(sortDesc)
 
     const billList = (bills ?? []).map(bill => ({
       bill,
       items: expByBill.get(bill.id) ?? [],
-    })).sort((a, b) => sortDesc(a.bill, b.bill))
+    }))
 
-    const groups: Record<string, { expenses: Expense[]; bills: typeof billList }> = {}
-    const ensure = (d: string) => { if (!groups[d]) groups[d] = { expenses: [], bills: [] } }
-    ungrouped.forEach(e => { const d = e.date || '0000-00-00'; ensure(d); groups[d].expenses.push(e) })
-    billList.forEach(b => { const d = b.bill.date || '0000-00-00'; ensure(d); groups[d].bills.push(b) })
+    const groups: Record<string, DateItem[]> = {}
+    const ensure = (d: string) => { if (!groups[d]) groups[d] = [] }
+    ungrouped.forEach(e => { const d = e.date || '0000-00-00'; ensure(d); groups[d].push({ kind: 'expense', expense: e }) })
+    billList.forEach(b => { const d = b.bill.date || '0000-00-00'; ensure(d); groups[d].push({ kind: 'bill', bill: b.bill, items: b.items }) })
+
+    const timeOf = (item: DateItem) => item.kind === 'expense' ? (item.expense.time || '00:00') : (item.bill.time || '00:00')
+    for (const d in groups) {
+      groups[d].sort((a, b) => timeOf(b).localeCompare(timeOf(a)))
+    }
+
     return Object.entries(groups).sort(([a], [b]) => b.localeCompare(a))
   }, [expenses, bills])
 
@@ -381,9 +384,9 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
         </span>
       </div>
 
-      {dateGroups.map(([date, group], idx) => {
-        const allItems = [...group.expenses, ...group.bills.flatMap(b => b.items)]
-        const dayTotal = sumBy(allItems, e => signedAmount(e))
+      {dateGroups.map(([date, items], idx) => {
+        const allExpenses = items.flatMap(i => i.kind === 'expense' ? [i.expense] : i.items)
+        const dayTotal = sumBy(allExpenses, e => signedAmount(e))
         return (
         <div key={date}>
           {idx > 0 && <div className="fn-date-divider" />}
@@ -394,15 +397,13 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
             </span>
           </div>
 
-          {group.expenses.length > 0 && (
-            <div className="fn-compact-list">
-              {group.expenses.map(exp => renderCompactRow(exp))}
-            </div>
-          )}
-
-          {group.bills.map(({ bill, items }) => {
-            const groupTotal = sumBy(items, e => signedAmount(e))
-            const groupBank = items[0]?.bank || ''
+          {items.map(item => {
+            if (item.kind === 'expense') {
+              return <div key={item.expense.id} className="fn-compact-list">{renderCompactRow(item.expense)}</div>
+            }
+            const { bill, items: billItems } = item
+            const groupTotal = sumBy(billItems, e => signedAmount(e))
+            const groupBank = billItems[0]?.bank || ''
             const isCollapsed = collapsed[bill.id] ?? false
             return (
               <div key={bill.id} className="fn-bill-group">
@@ -427,7 +428,7 @@ export function ExpenseSection({ expenses, bills, bankAccounts, onAdd, onUpdate,
                     <BillDetail bill={bill} onUploadImage={handleUploadImage} />
                     <table className="fn-table">
                       {billTableHead}
-                      <tbody>{items.map(exp => renderBillRow(exp))}</tbody>
+                      <tbody>{billItems.map(exp => renderBillRow(exp))}</tbody>
                     </table>
                   </>
                 )}
