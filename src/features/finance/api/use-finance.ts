@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { format } from 'date-fns'
 import type { FinanceMonth, CreditCard, Expense, Debt, SavingItem, LoanItem, BankBalance, BillInfo } from '../types'
 import { emptyFinanceMonth } from '../types'
+import mockFinance from '../../../../mock/finance/2026-03.json'
 
 const API = '/api'
 
@@ -29,6 +30,7 @@ export function useFinance() {
     fetch(`${API}/finance?month=${selectedMonth}`)
       .then(r => r.json())
       .then((d: FinanceMonth) => { setData(d); setLoading(false) })
+      .catch(() => { setData(mockFinance as unknown as FinanceMonth); setLoading(false) })
   }, [selectedMonth])
 
   // Income

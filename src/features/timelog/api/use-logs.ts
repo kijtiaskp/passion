@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { format } from 'date-fns'
 import type { LogEntry } from '../types'
+import mockTimelog from '../../../../mock/timelog/2026-03.json'
+import mockProjects from '../../../../mock/projects.json'
 
 const API = '/api'
 
@@ -20,11 +22,13 @@ export function useLogs() {
     fetch(`${API}/timelog?month=${selectedMonth}`)
       .then(r => r.json())
       .then(data => { setLogs(data); setLoading(false) })
+      .catch(() => { setLogs(mockTimelog as LogEntry[]); setLoading(false) })
   }, [selectedMonth])
 
   // Fetch projects once
   useEffect(() => {
     fetch(`${API}/projects`).then(r => r.json()).then(setProjects)
+      .catch(() => setProjects(mockProjects))
   }, [])
 
   const addLog = useCallback(async (

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { format } from 'date-fns'
 import type { ActivityEntry, ActivityCategory, Mood } from '../types'
+import mockActivities from '../../../../mock/activity/2026-03-10.json'
 
 const API = '/api'
 
@@ -18,6 +19,7 @@ export function useActivities() {
     fetch(`${API}/activity?date=${selectedDate}`)
       .then(r => r.json())
       .then(data => { setActivities(data); setLoading(false) })
+      .catch(() => { setActivities(mockActivities as ActivityEntry[]); setLoading(false) })
   }, [selectedDate])
 
   const addActivity = useCallback(async (
