@@ -1,0 +1,191 @@
+[
+  {
+    "id": 1700000000001,
+    "task": "พัฒนาหน้า product listing",
+    "cat": "dev",
+    "project": "E-Commerce Platform",
+    "start": "2026-03-10T06:00:00.000Z",
+    "end": "2026-03-10T11:00:00.000Z",
+    "hrs": 5
+  },
+  {
+    "id": 1700000000002,
+    "task": "ประชุม sprint planning",
+    "cat": "meeting",
+    "project": "Mobile Banking App",
+    "start": "2026-03-10T02:00:00.000Z",
+    "end": "2026-03-10T04:00:00.000Z",
+    "hrs": 2
+  },
+  {
+    "id": 1700000000003,
+    "task": "ออกแบบ wireframe checkout flow",
+    "cat": "design",
+    "project": "E-Commerce Platform",
+    "start": "2026-03-10T04:00:00.000Z",
+    "end": "2026-03-10T06:00:00.000Z",
+    "hrs": 2
+  },
+  {
+    "id": 1700000000004,
+    "task": "แก้บัค login หน้า mobile",
+    "cat": "dev",
+    "project": "Mobile Banking App",
+    "start": "2026-03-09T06:00:00.000Z",
+    "end": "2026-03-09T11:00:00.000Z",
+    "hrs": 5
+  },
+  {
+    "id": 1700000000005,
+    "task": "review PR ระบบ payment",
+    "cat": "review",
+    "project": "E-Commerce Platform",
+    "start": "2026-03-09T02:00:00.000Z",
+    "end": "2026-03-09T04:00:00.000Z",
+    "hrs": 2
+  },
+  {
+    "id": 1700000000006,
+    "task": "พัฒนา API endpoint สำหรับ order",
+    "cat": "dev",
+    "project": "E-Commerce Platform",
+    "start": "2026-03-09T04:00:00.000Z",
+    "end": "2026-03-09T06:00:00.000Z",
+    "hrs": 2
+  },
+  {
+    "id": 1700000000007,
+    "task": "ทำ dashboard analytics",
+    "cat": "dev",
+    "project": "Internal Dashboard",
+    "start": "2026-03-08T06:00:00.000Z",
+    "end": "2026-03-08T11:00:00.000Z",
+    "hrs": 5
+  },
+  {
+    "id": 1700000000008,
+    "task": "ประชุม design review กับ UX team",
+    "cat": "meeting",
+    "project": "E-Commerce Platform",
+    "start": "2026-03-08T02:00:00.000Z",
+    "end": "2026-03-08T03:00:00.000Z",
+    "hrs": 1
+  },
+  {
+    "id": 1700000000009,
+    "task": "เขียน unit test สำหรับ cart module",
+    "cat": "dev",
+    "project": "E-Commerce Platform",
+    "start": "2026-03-08T03:00:00.000Z",
+    "end": "2026-03-08T06:00:00.000Z",
+    "hrs": 3
+  },
+  {
+    "id": 1700000000010,
+    "task": "refactor authentication flow",
+    "cat": "dev",
+    "project": "Mobile Banking App",
+    "start": "2026-03-07T06:00:00.000Z",
+    "end": "2026-03-07T11:00:00.000Z",
+    "hrs": 5
+  },
+  {
+    "id": 1700000000011,
+    "task": "แก้ไข responsive layout",
+    "cat": "dev",
+    "project": "Internal Dashboard",
+    "start": "2026-03-07T02:00:00.000Z",
+    "end": "2026-03-07T05:00:00.000Z",
+    "hrs": 3
+  },
+  {
+    "id": 1700000000012,
+    "task": "ประชุม retrospective",
+    "cat": "meeting",
+    "project": "E-Commerce Platform",
+    "start": "2026-03-06T02:00:00.000Z",
+    "end": "2026-03-06T03:00:00.000Z",
+    "hrs": 1
+  },
+  {
+    "id": 1700000000013,
+    "task": "พัฒนา notification system",
+    "cat": "dev",
+    "project": "Mobile Banking App",
+    "start": "2026-03-06T03:00:00.000Z",
+    "end": "2026-03-06T06:00:00.000Z",
+    "hrs": 3
+  },
+  {
+    "id": 1700000000014,
+    "task": "ทำ CI/CD pipeline",
+    "cat": "dev",
+    "project": "E-Commerce Platform",
+    "start": "2026-03-06T06:00:00.000Z",
+    "end": "2026-03-06T11:00:00.000Z",
+    "hrs": 5
+  },
+  {
+    "id": 1700000000015,
+    "task": "พัฒนาหน้า user profile",
+    "cat": "dev",
+    "project": "Mobile Banking App",
+    "start": "2026-03-05T02:00:00.000Z",
+    "end": "2026-03-05T05:00:00.000Z",
+    "hrs": 3
+  },
+  {
+    "id": 1700000000016,
+    "task": "ทำ search & filter feature",
+    "cat": "dev",
+    "project": "E-Commerce Platform",
+    "start": "2026-03-05T06:00:00.000Z",
+    "end": "2026-03-05T11:00:00.000Z",
+    "hrs": 5
+  },
+  {
+    "id": 1700000000017,
+    "task": "ออกแบบ database schema",
+    "cat": "design",
+    "project": "Internal Dashboard",
+    "start": "2026-03-04T02:00:00.000Z",
+    "end": "2026-03-04T05:00:00.000Z",
+    "hrs": 3
+  },
+  {
+    "id": 1700000000018,
+    "task": "พัฒนา REST API",
+    "cat": "dev",
+    "project": "Internal Dashboard",
+    "start": "2026-03-04T06:00:00.000Z",
+    "end": "2026-03-04T11:00:00.000Z",
+    "hrs": 5
+  },
+  {
+    "id": 1700000000019,
+    "task": "Casual Leave",
+    "cat": "leave",
+    "project": "",
+    "start": "2026-03-03T02:00:00.000Z",
+    "end": "2026-03-03T11:00:00.000Z",
+    "hrs": 8
+  },
+  {
+    "id": 1700000000020,
+    "task": "review code ระบบ payment gateway",
+    "cat": "review",
+    "project": "E-Commerce Platform",
+    "start": "2026-03-02T02:00:00.000Z",
+    "end": "2026-03-02T04:00:00.000Z",
+    "hrs": 2
+  },
+  {
+    "id": 1700000000021,
+    "task": "แก้บัค transfer ข้ามบัญชี",
+    "cat": "dev",
+    "project": "Mobile Banking App",
+    "start": "2026-03-02T04:00:00.000Z",
+    "end": "2026-03-02T11:00:00.000Z",
+    "hrs": 7
+  }
+]

@@ -2,14 +2,21 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, unlinkSync } from '
 import { join, dirname } from 'path'
 
 const DATA_DIR = join(process.cwd(), 'data')
+const MOCK_DIR = join(process.cwd(), 'mock')
 
 mkdirSync(join(DATA_DIR, 'timelog'), { recursive: true })
 
 export function readJson<T>(filename: string, fallback: T): T {
+  const dataPath = join(DATA_DIR, filename)
+  const mockPath = join(MOCK_DIR, filename)
   try {
-    return JSON.parse(readFileSync(join(DATA_DIR, filename), 'utf-8'))
+    return JSON.parse(readFileSync(dataPath, 'utf-8'))
   } catch {
-    return fallback
+    try {
+      return JSON.parse(readFileSync(mockPath, 'utf-8'))
+    } catch {
+      return fallback
+    }
   }
 }
 
