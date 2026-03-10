@@ -8,6 +8,7 @@ import { TimesheetBar } from './components/TimesheetBar'
 import { LogForm } from './components/LogForm'
 import { LogTable } from './components/LogTable'
 import { ActivityPanel } from './components/ActivityPanel'
+import { ProjectTimeChart } from './components/ProjectTimeChart'
 import './timelog.css'
 
 export function TimelogApp() {
@@ -88,6 +89,7 @@ export function TimelogApp() {
             </header>
             <StatsBar stats={stats} />
             <TimesheetBar todayHrs={stats.todayHrs} />
+            <ProjectTimeChart logs={logs} selectedMonth={selectedMonth} />
             <LogForm projects={projects} onAddLog={addLog} onAddProject={addProject} />
             <LogTable
               logs={logs}
