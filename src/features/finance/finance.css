@@ -241,6 +241,136 @@
   color: var(--text);
 }
 
+/* ─── Stacked Bar Legend ────────────────────────── */
+.fn-stacked-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.fn-stacked-legend-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fn-stacked-legend-title {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 11px;
+  margin-bottom: 2px;
+}
+
+.fn-stacked-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.6;
+}
+
+.fn-stacked-legend-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fn-stacked-legend-pct {
+  min-width: 40px;
+  text-align: right;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+}
+
+.fn-stacked-legend-val {
+  min-width: 70px;
+  text-align: right;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--text);
+}
+
+/* ─── Category View ─────────────────────────────── */
+.fn-catview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.fn-catview-total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.fn-catview-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fn-catview-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.fn-catview-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fn-catview-pct {
+  min-width: 40px;
+  text-align: right;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+}
+
+.fn-catview-amount {
+  min-width: 70px;
+  text-align: right;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--text);
+}
+
+.fn-catview-bar-bg {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+
+.fn-catview-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.fn-barchart-tooltip-total {
+  font-weight: 600;
+  font-size: 11px;
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+.fn-barchart-tooltip-total.fn-income { color: var(--accent); }
+.fn-barchart-tooltip-total.fn-outcome { color: var(--danger); }
+
 /* ─── Stats / Summary ───────────────────────────── */
 .fn-stats {
   display: grid;

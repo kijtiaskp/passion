@@ -10,7 +10,6 @@ import { DebtSection } from './components/DebtSection'
 import { SavingSection } from './components/SavingSection'
 import { HomeLoanSection } from './components/HomeLoanSection'
 import { FinanceTips } from './components/FinanceTips'
-import { SpendingPieChart } from './components/SpendingPieChart'
 import './finance.css'
 
 const THAI_MONTH_NAMES = [
@@ -101,8 +100,6 @@ export function FinanceApp() {
             />
 
             <SummaryBar data={data} />
-
-            <SpendingPieChart data={data} />
 
             <div className="fn-side-by-side">
               <DebtSection
