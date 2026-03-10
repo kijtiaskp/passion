@@ -1215,6 +1215,25 @@ td.fn-expense-total {
   border-top: 1px solid var(--border);
 }
 
+.fn-tip-image {
+  margin: 12px 0 8px;
+  border-radius: 8px;
+  overflow: hidden;
+  max-height: 180px;
+}
+.fn-tip-image img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+  border-radius: 8px;
+  opacity: 0.85;
+  transition: opacity 0.2s;
+}
+.fn-tip-image img:hover {
+  opacity: 1;
+}
+
 .fn-tip-content {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 13px;

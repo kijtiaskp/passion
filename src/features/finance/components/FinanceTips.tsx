@@ -6,9 +6,136 @@ interface TipArticle {
   source?: string
   sourceUrl?: string
   tags: string[]
+  image?: string
 }
 
 const TIPS: TipArticle[] = [
+  // === สถานการณ์โลก มี.ค. 2569 ===
+  {
+    title: 'Trade War 2026 - ภาษีนำเข้า Trump ป่วนเศรษฐกิจโลก',
+    content:
+      'ศาลสูงสหรัฐตัดสิน 6-3 ว่า IEEPA ไม่ให้อำนาจประธานาธิบดีเก็บภาษีนำเข้า ' +
+      'Trump ตอบโต้ด้วยการประกาศภาษีนำเข้า 10% ทั่วโลกตาม Section 122\n\n' +
+      'ผลกระทบ:\n' +
+      '- ภาษี 20% ทั่วโลก + 50% จีน (รวม 60%) จะลด GDP สหรัฐ 1.3%\n' +
+      '- ครัวเรือนอเมริกันจ่ายภาษีเพิ่ม ~$700/ปี\n' +
+      '- เงินเฟ้อพุ่ง กำลังซื้อลด กำไรบริษัทหด\n' +
+      '- GDP โลกยังโต 3.3% แต่มีความเสี่ยงขาลง\n\n' +
+      'สำหรับไทย: ส่งออกกระทบหนัก เพราะพึ่งพาตลาดสหรัฐสูง ' +
+      'สินค้าอิเล็กทรอนิกส์ อาหาร และยานยนต์อาจโดนภาษีเพิ่ม',
+    source: 'Tax Foundation',
+    sourceUrl: 'https://taxfoundation.org/research/all/federal/trump-tariffs-trade-war/',
+    tags: ['สถานการณ์โลก', 'Trade War'],
+    image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=200&fit=crop',
+  },
+  {
+    title: 'SET Index ดิ่ง! Circuit Breaker ครั้งแรกรอบหลายปี',
+    content:
+      'วันที่ 4 มี.ค. 2569 SET50 ร่วง 8% แตะ ~900 จุด ถูกพักการซื้อขาย 30 นาที\n' +
+      'SET Index ปิดลบ 5.6% วันเดียว มากสุดตั้งแต่ มี.ค. 2563 (COVID)\n\n' +
+      'สาเหตุ: ความขัดแย้งตะวันออกกลางลุกลาม + Risk-off ทั่วเอเชีย\n' +
+      'ล่าสุด (10 มี.ค.): SET กลับมาที่ 1,405.76 จุด (+1.65%) มูลค่าซื้อขาย 68.21 พันล้านบาท\n\n' +
+      'ภาพรวม: ย้อนหลัง 1 ปี SET ยังบวก 23.25% แต่เดือนนี้ลบ 3.36%\n' +
+      'โอกาส: ตลาดตกหนัก = โอกาสซื้อสำหรับนักลงทุนระยะยาว',
+    source: 'Bloomberg',
+    sourceUrl: 'https://www.bloomberg.com/news/articles/2026-03-04/thailand-s-stock-index-drops-8-to-trigger-trading-halt-mmbljzy2',
+    tags: ['สถานการณ์โลก', 'หุ้นไทย'],
+    image: 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=400&h=200&fit=crop',
+  },
+  {
+    title: 'ทองคำทำนิวไฮ 2026 - แตะ $5,180/ออนซ์',
+    content:
+      'ราคาทองคำพุ่งขึ้นต่อเนื่อง:\n' +
+      '- ม.ค. 2026: เฉลี่ย $4,733/ออนซ์ (+8.65% จากปลายปี 2025)\n' +
+      '- มี.ค. 2026: ทดสอบ $5,050 ก่อนดีดกลับ $5,180/ออนซ์\n' +
+      '- ปี 2025 ทอง new high กว่า 50 ครั้ง ผลตอบแทน 60%+\n\n' +
+      'คาดการณ์:\n' +
+      '- Morgan Stanley: เฉลี่ย $4,600/ออนซ์\n' +
+      '- Bank of America: อาจแตะ $5,000+ หาก Fed ลดดอกเบี้ย\n\n' +
+      'ปัจจัยหนุน: ภูมิรัฐศาสตร์ไม่แน่นอน + ธนาคารกลางทั่วโลกซื้อทอง + ดอลลาร์อ่อน\n' +
+      'สำหรับคนไทย: ทองคำแท่ง/กองทุนทองเป็น safe haven ที่ดี',
+    source: 'SET Investnow',
+    sourceUrl: 'https://www.setinvestnow.com/th/knowledge/article/769-investhow-investment-outlook-ylg-2026',
+    tags: ['สถานการณ์โลก', 'ทองคำ'],
+    image: 'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=400&h=200&fit=crop',
+  },
+  {
+    title: 'Bitcoin ผันผวน $60K-$73K - ยังไม่ถึง Moon?',
+    content:
+      'ราคา Bitcoin มี.ค. 2026:\n' +
+      '- 4 มี.ค.: พุ่งแตะ $73,000 (สูงสุดในรอบเดือน) จาก ETF inflows\n' +
+      '- 10 มี.ค.: อยู่ที่ $70,828 (+$1,437 จากเมื่อวาน)\n' +
+      '- กรอบสะสม: $60,000-$72,000 (high-density zone)\n' +
+      '- Market Cap: ~$1.33 ล้านล้านดอลลาร์\n\n' +
+      'เทียบ 1 ปีก่อน: ยังติดลบ ~$7,700\n' +
+      'Ethereum: Market Cap ~$233 พันล้านดอลลาร์\n\n' +
+      'ข้อควรระวัง: คริปโตยังผันผวนสูง ไม่เหมาะเป็นที่พึ่งหลัก\n' +
+      'กฎ: ลงทุนเฉพาะเงินที่พร้อมสูญเสีย ไม่เกิน 5-10% ของพอร์ต',
+    source: 'Fortune',
+    sourceUrl: 'https://fortune.com/article/price-of-bitcoin-03-10-2026/',
+    tags: ['สถานการณ์โลก', 'คริปโต'],
+    image: 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400&h=200&fit=crop',
+  },
+  {
+    title: 'เศรษฐกิจไทย 2026 - โตต่ำสุดรอบ 30 ปี',
+    content:
+      'GDP ไทยคาดโต 1.5-1.8% เท่านั้น (World Bank ล่าสุด 1.8%)\n' +
+      'ต่ำสุดรอบ 30 ปี ไม่นับปีวิกฤต\n\n' +
+      'ปัจจัยลบ:\n' +
+      '- หนี้ครัวเรือนสูงกดการบริโภค\n' +
+      '- ภาษีนำเข้าสหรัฐกระทบส่งออก\n' +
+      '- การลงทุนเอกชนอ่อนแรง\n' +
+      '- ความไม่แน่นอนทางการเมือง\n\n' +
+      'นโยบายเงิน:\n' +
+      '- ธปท. ลดดอกเบี้ยเหลือ 1.25% (ปลาย 2025)\n' +
+      '- คาด ลดต่อเหลือ 1.0% ใน H1/2026\n' +
+      '- แต่ลดดอกเบี้ยอย่างเดียวไม่พอ SME/ครัวเรือนยังเข้าถึงสินเชื่อยาก\n\n' +
+      'ค่าเงินบาท: อ่อนค่าต่อเนื่อง 31.50-31.85 บาท/ดอลลาร์\n' +
+      'คาดปลายปี: 33.00-34.00 บาท/ดอลลาร์',
+    source: 'Nation Thailand',
+    sourceUrl: 'https://www.nationthailand.com/business/economy/40060602',
+    tags: ['สถานการณ์โลก', 'เศรษฐกิจไทย'],
+    image: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=200&fit=crop',
+  },
+  {
+    title: 'Tech Layoffs 2026 - AI กำลังแทนที่คน',
+    content:
+      'สถิติ Layoffs 2026 (ณ มี.ค.):\n' +
+      '- 45,724 คน ถูกเลิกจ้าง จาก 81 บริษัท\n' +
+      '- เฉลี่ย 663 คน/วัน\n' +
+      '- กว่า 9,200 คน เกิดจาก AI/Automation โดยตรง\n' +
+      '- คาดทั้งปี: 264,730 คน (มากกว่าปี 2025 ที่ 245,000)\n\n' +
+      'บริษัทใหญ่ที่ Layoff:\n' +
+      '- Amazon: ลด 16,000 ตำแหน่ง (~10% corporate)\n' +
+      '- Meta: ลด 1,500 คน (Reality Labs/Metaverse)\n\n' +
+      'แนวโน้ม: บริษัทปรับโครงสร้างรอบ AI มากขึ้น\n' +
+      'คำแนะนำ: Developer ต้อง upskill AI/ML integration\n' +
+      'ทักษะ hot: Prompt Engineering, AI Agent, LLM APIs\n' +
+      'ทักษะ safe: System Design, Cloud, DevOps, Security',
+    source: 'TechNode Global',
+    sourceUrl: 'https://technode.global/2026/03/09/2026-tech-layoffs-reach-45000-in-march-more-than-9200-due-to-ai-and-automation-rationalfx/',
+    tags: ['สถานการณ์โลก', 'อาชีพ'],
+    image: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&h=200&fit=crop',
+  },
+  {
+    title: 'วิกฤตหนี้โลก 2026 - G7 เข้าสู่ "กับดักหนี้"',
+    content:
+      '6 ใน 7 ประเทศ G7 กำลังมุ่งสู่กับดักหนี้:\n' +
+      '- สหรัฐ: หนี้สาธารณะ 125% ของ GDP\n' +
+      '- ญี่ปุ่น: สูงสุดที่ 230% ของ GDP\n' +
+      '- ยุโรป: ECB ส่งสัญญาณลดดอกเบี้ย 25bps\n\n' +
+      'ผลกระทบต่อคนธรรมดา:\n' +
+      '- ดอกเบี้ยสูงนาน = ภาระหนี้บ้าน/รถ ไม่ลดง่าย\n' +
+      '- เงินเฟ้อกัดกร่อนกำลังซื้อ\n' +
+      '- เศรษฐกิจ K-shaped: คนรวยรวยต่อ คนจนลำบากขึ้น\n\n' +
+      'สำหรับไทย: ต้นทุนกู้ยืมทั่วโลกยังสูง ส่งผลต่อ FDI และค่าเงิน\n' +
+      'กฎ: อย่ามีหนี้ที่ดอกเบี้ยลอยตัว ถ้ามี ให้ refinance เป็นดอกเบี้ยคงที่',
+    source: 'Bangkok Biz News',
+    sourceUrl: 'https://www.bangkokbiznews.com/world/economics/1214562',
+    tags: ['สถานการณ์โลก', 'หนี้'],
+    image: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=400&h=200&fit=crop',
+  },
+
   // === แผนลดหนี้ ===
   {
     title: 'Avalanche Method - จ่ายดอกเบี้ยแพงสุดก่อน',
@@ -230,12 +357,12 @@ export function FinanceTips() {
   return (
     <div className="fn-section fn-tips-section">
       <div className="fn-section-header">
-        <h3>Financial Tips & News</h3>
+        <h3>Financial Tips & World Update</h3>
         <span className="fn-section-total">{filtered.length} บทความ</span>
       </div>
 
       <div className="fn-tips-date">
-        อัปเดต: 6 มี.ค. 2569 | เงินเดือน: 38,500 บาท
+        อัปเดต: 11 มี.ค. 2569 | เงินเดือน: 38,500 บาท
       </div>
 
       <div className="fn-tips-tags">
@@ -269,6 +396,11 @@ export function FinanceTips() {
               </div>
               {isOpen && (
                 <div className="fn-tip-body">
+                  {tip.image && (
+                    <div className="fn-tip-image">
+                      <img src={tip.image} alt={tip.title} loading="lazy" />
+                    </div>
+                  )}
                   <pre className="fn-tip-content">{tip.content}</pre>
                   {tip.source && (
                     <div className="fn-tip-source">
