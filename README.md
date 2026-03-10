@@ -2,6 +2,25 @@
 
 Personal life tracking app — บันทึกเวลาทำงาน, จัดการการเงิน, และบันทึกกิจกรรมประจำวัน
 
+**[Live Demo](https://kijtiaskp.github.io/passion/)**
+
+## Screenshots
+
+### Timelog — บันทึกเวลาทำงาน
+สรุปชั่วโมงทำงานรายวัน/สัปดาห์/เดือน พร้อม timesheet bar, ฟอร์มเพิ่ม task, และตารางแสดง log แยกตามวัน
+
+![Timelog](docs/screenshot-timelog.png)
+
+### Finance — ภาพรวมการเงิน
+บันทึกรายรับ-รายจ่ายแยกตามวัน, จัดกลุ่มบิลจากร้านค้า, สรุปยอดบัญชี, กราฟรายรับ-รายจ่าย, pie chart สัดส่วนหมวดรายจ่าย, ติดตามหนี้สิน/เงินออม/ผ่อนบ้าน
+
+![Finance Overview](docs/screenshot-finance-overview.png)
+
+### Finance — บัตรเครดิต & Financial Tips
+จัดการบัตรเครดิตหลายใบ พร้อม subscriptions รายเดือน และบทความ financial tips ที่คัดมาตามสถานะการเงิน
+
+![Finance Credit Cards & Tips](docs/screenshot-finance-credit.png)
+
 ## Features
 
 ### Timelog — บันทึกเวลาทำงาน
