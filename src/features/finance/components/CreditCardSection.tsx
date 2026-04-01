@@ -9,7 +9,7 @@ interface Props {
   onDelete: (id: number) => void
 }
 
-const COL_WIDTHS = ['18%', '12%', '12%', '12%', '12%', '7%', '7%', '12%', '4%']
+const COL_WIDTHS = ['16%', '11%', '11%', '11%', '11%', '6%', '6%', '10%', '10%', '4%']
 const EMPTY_CARD = { name: '', creditLimit: 0, used: 0, willPay: 0, min: 0, max: 0, subscriptionTotal: 0 }
 const EMPTY_SUB = { name: '', amount: 0, billingDay: 1 }
 
@@ -22,6 +22,7 @@ export function CreditCardSection({ cards, onAdd, onUpdate, onDelete }: Props) {
   const totalUsed = sumBy(cards, c => c.used ?? 0)
   const totalWillPay = sumBy(cards, c => c.willPay)
   const totalSub = sumBy(cards, c => c.subscriptionTotal)
+  const totalPaid = sumBy(cards, c => c.paid ?? 0)
 
   const handleAdd = () => {
     if (!form.name) return
@@ -52,6 +53,7 @@ export function CreditCardSection({ cards, onAdd, onUpdate, onDelete }: Props) {
               <th>Min</th>
               <th>Max</th>
               <th>Sub รวม</th>
+              <th>จ่ายจริง</th>
               <th></th>
             </tr>
           </thead>
@@ -70,6 +72,7 @@ export function CreditCardSection({ cards, onAdd, onUpdate, onDelete }: Props) {
               <td></td>
               <td></td>
               <td><span className="fn-num">{fmt(totalSub)}</span></td>
+              <td><span className="fn-num fn-num-success">{fmt(totalPaid)}</span></td>
               <td></td>
             </tr>
           </tfoot>
@@ -131,6 +134,7 @@ function CardRow({ card, onUpdate, onDelete }: {
         <td><EditableNum value={card.min} onChange={v => updateCard({ min: v })} /></td>
         <td><EditableNum value={card.max} onChange={v => updateCard({ max: v })} /></td>
         <td><span className="fn-num">{fmt(card.subscriptionTotal)}</span></td>
+        <td><EditableNum value={card.paid ?? 0} onChange={v => updateCard({ paid: v })} className="fn-num-success" /></td>
         <td><button className="fn-delete-btn" onClick={() => onDelete(card.id)}>×</button></td>
       </tr>
       {subs.map(sub => (
@@ -139,7 +143,13 @@ function CardRow({ card, onUpdate, onDelete }: {
           <td></td><td></td><td></td>
           <td className="fn-sub-detail">ทุกวันที่ {sub.billingDay}</td>
           <td></td><td></td>
-          <td><span className="fn-num">{fmt(sub.amount)}</span></td>
+          <td>
+            <span className="fn-num">{fmt(sub.amount)}</span>
+            {sub.amountUsd != null && (
+              <span className="fn-sub-fx"> (${sub.amountUsd} · rate {(sub.amount / sub.amountUsd).toFixed(2)})</span>
+            )}
+          </td>
+          <td></td>
           <td><button className="fn-delete-btn" onClick={() => updateSubs(subs.filter(s => s.id !== sub.id))}>×</button></td>
         </tr>
       ))}
@@ -157,7 +167,7 @@ function CardRow({ card, onUpdate, onDelete }: {
             <button className="fn-btn-add fn-btn-add-sub" onClick={() => setAddingSub(true)}>+ เพิ่ม subscription</button>
           )}
         </td>
-        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
       </tr>
     </>
   )

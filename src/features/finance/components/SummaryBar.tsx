@@ -231,6 +231,70 @@ function BarTooltip({ active, payload, label }: any) {
   )
 }
 
+function LegendGroup({ title, items, grand, colors, side, expenses, income }: {
+  title: string
+  items: { cat: string; total: number }[]
+  grand: number
+  colors: string[]
+  side: 'income' | 'expense'
+  expenses: Expense[]
+  income?: FinanceMonth['income']
+}) {
+  const [expandedCat, setExpandedCat] = useState<string | null>(null)
+
+  const getDetails = (cat: string) => {
+    if (side === 'income') {
+      const details: { name: string; amount: number }[] = []
+      if (cat === 'salary' && income?.salary) details.push({ name: 'เงินเดือน', amount: income.salary })
+      if (cat === 'carry-over' && income?.carryOver) details.push({ name: 'เหลือเดือนก่อน', amount: income.carryOver })
+      for (const e of expenses) {
+        if (e.txType === 'income' && (e.category || 'uncategorized') === cat) {
+          details.push({ name: e.name, amount: e.amount })
+        }
+      }
+      return details
+    }
+    return expenses
+      .filter(e => (e.txType || 'expense') === 'expense' && (e.category || 'uncategorized') === cat)
+      .map(e => ({ name: e.name, amount: e.amount }))
+  }
+
+  return (
+    <div className="fn-stacked-legend-group">
+      <div className="fn-stacked-legend-title">{title}</div>
+      {items.map((c, i) => {
+        const pct = grand > 0 ? ((c.total / grand) * 100).toFixed(1) : '0.0'
+        const isExpanded = expandedCat === c.cat
+        const details = isExpanded ? getDetails(c.cat) : []
+        return (
+          <div key={c.cat}>
+            <div
+              className="fn-stacked-legend-item fn-stacked-legend-item-clickable"
+              onClick={() => setExpandedCat(isExpanded ? null : c.cat)}
+            >
+              <span className="fn-dot" style={{ background: colors[i % colors.length] }} />
+              <span className="fn-stacked-legend-name">{catLabel(c.cat, side)}</span>
+              <span className={`fn-stacked-legend-arrow ${isExpanded ? 'expanded' : ''}`}>&#9662;</span>
+              <span className="fn-stacked-legend-pct">{pct}%</span>
+              <span className="fn-stacked-legend-val">{fmt(c.total)}</span>
+            </div>
+            {isExpanded && details.length > 0 && (
+              <div className="fn-stacked-legend-details">
+                {details.map((d, j) => (
+                  <div key={j} className="fn-stacked-legend-detail-row">
+                    <span className="fn-stacked-legend-detail-name">{d.name}</span>
+                    <span className="fn-stacked-legend-detail-val">{fmt(d.amount)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function BarChartView({ data, period }: { data: FinanceMonth; period: Period }) {
   const { chartData, incomeList, expenseList } = useMemo(
     () => buildBarData(data.expenses, data.income, period, data.month),
@@ -286,36 +350,25 @@ function BarChartView({ data, period }: { data: FinanceMonth; period: Period }) 
       {(incomeList.length > 0 || expenseList.length > 0) && (
         <div className="fn-stacked-legend">
           {incomeList.length > 0 && (
-            <div className="fn-stacked-legend-group">
-              <div className="fn-stacked-legend-title">รายรับ</div>
-              {incomeList.map((c, i) => {
-                const pct = incGrand > 0 ? ((c.total / incGrand) * 100).toFixed(1) : '0.0'
-                return (
-                  <div key={c.cat} className="fn-stacked-legend-item">
-                    <span className="fn-dot" style={{ background: INCOME_COLORS[i % INCOME_COLORS.length] }} />
-                    <span className="fn-stacked-legend-name">{catLabel(c.cat, 'income')}</span>
-                    <span className="fn-stacked-legend-pct">{pct}%</span>
-                    <span className="fn-stacked-legend-val">{fmt(c.total)}</span>
-                  </div>
-                )
-              })}
-            </div>
+            <LegendGroup
+              title="รายรับ"
+              items={incomeList}
+              grand={incGrand}
+              colors={INCOME_COLORS}
+              side="income"
+              expenses={data.expenses}
+              income={data.income}
+            />
           )}
           {expenseList.length > 0 && (
-            <div className="fn-stacked-legend-group">
-              <div className="fn-stacked-legend-title">รายจ่าย</div>
-              {expenseList.map((c, i) => {
-                const pct = expGrand > 0 ? ((c.total / expGrand) * 100).toFixed(1) : '0.0'
-                return (
-                  <div key={c.cat} className="fn-stacked-legend-item">
-                    <span className="fn-dot" style={{ background: EXPENSE_COLORS[i % EXPENSE_COLORS.length] }} />
-                    <span className="fn-stacked-legend-name">{catLabel(c.cat, 'expense')}</span>
-                    <span className="fn-stacked-legend-pct">{pct}%</span>
-                    <span className="fn-stacked-legend-val">{fmt(c.total)}</span>
-                  </div>
-                )
-              })}
-            </div>
+            <LegendGroup
+              title="รายจ่าย"
+              items={expenseList}
+              grand={expGrand}
+              colors={EXPENSE_COLORS}
+              side="expense"
+              expenses={data.expenses}
+            />
           )}
         </div>
       )}

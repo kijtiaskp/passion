@@ -294,6 +294,41 @@
   color: var(--text);
 }
 
+.fn-stacked-legend-item-clickable { cursor: pointer; }
+.fn-stacked-legend-item-clickable:hover { opacity: 0.8; }
+
+.fn-stacked-legend-arrow {
+  font-size: 9px;
+  color: var(--text-muted, #999);
+  transition: transform 0.2s;
+  margin-right: auto;
+}
+.fn-stacked-legend-arrow.expanded { transform: rotate(180deg); }
+
+.fn-stacked-legend-details {
+  padding: 4px 0 8px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.fn-stacked-legend-detail-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted, #aaa);
+}
+.fn-stacked-legend-detail-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 8px;
+}
+.fn-stacked-legend-detail-val {
+  white-space: nowrap;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+}
+
 /* ─── Category View ─────────────────────────────── */
 .fn-catview {
   display: flex;
@@ -381,6 +416,7 @@
 .fn-stats .stat-card .value.danger { color: var(--danger); }
 .fn-stats .stat-card-expense::before { background: var(--danger) !important; }
 .fn-stats .stat-card-net::before { background: var(--accent2) !important; }
+
 
 /* ─── Section ────────────────────────────────────── */
 .fn-section {
@@ -481,6 +517,11 @@
   color: #ef4444;
 }
 
+.fn-num-success,
+.fn-editable.fn-num.fn-num-success {
+  color: #22c55e;
+}
+
 .fn-cc-table {
   table-layout: fixed;
   width: 100%;
@@ -517,6 +558,12 @@
 .fn-sub-detail {
   color: var(--text-muted, #999);
   font-size: 0.85em;
+}
+
+.fn-sub-fx {
+  color: var(--text-muted, #999);
+  font-size: 0.85em;
+  margin-left: 4px;
 }
 
 .fn-btn-add-sub {

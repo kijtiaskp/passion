@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { addMonths, format } from 'date-fns'
 import { useFinance } from './api/use-finance'
 import { SummaryBar } from './components/SummaryBar'
@@ -41,7 +42,11 @@ type TabKey = typeof TABS[number]['key']
 export function FinanceApp() {
   const finance = useFinance()
   const { data, loading, selectedMonth, setSelectedMonth } = finance
-  const [activeTab, setActiveTab] = useState<TabKey>('overview')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const validTabs = useMemo(() => new Set(TABS.map(t => t.key)), [])
+  const tabParam = searchParams.get('tab') as TabKey | null
+  const activeTab: TabKey = tabParam && validTabs.has(tabParam) ? tabParam : 'overview'
+  const setActiveTab = (tab: TabKey) => setSearchParams(tab === 'overview' ? {} : { tab }, { replace: true })
 
   return (
     <div className="fn-container">

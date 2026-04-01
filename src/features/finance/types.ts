@@ -2,6 +2,7 @@ export interface Subscription {
   id: number
   name: string
   amount: number
+  amountUsd?: number
   billingDay: number
 }
 
@@ -14,6 +15,7 @@ export interface CreditCard {
   min: number
   max: number
   subscriptionTotal: number
+  paid?: number
   subscriptions?: Subscription[]
 }
 

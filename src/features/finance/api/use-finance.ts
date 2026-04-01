@@ -29,7 +29,11 @@ export function useFinance() {
     setLoading(true)
     fetch(`${API}/finance?month=${selectedMonth}`)
       .then(r => r.json())
-      .then((d: FinanceMonth) => { setData(d); setLoading(false) })
+      .then((d: FinanceMonth) => {
+        d.creditCards = [...d.creditCards].sort((a, b) => a.name.localeCompare(b.name))
+        setData(d)
+        setLoading(false)
+      })
       .catch(() => { setData(mockFinance as unknown as FinanceMonth); setLoading(false) })
   }, [selectedMonth])
 
