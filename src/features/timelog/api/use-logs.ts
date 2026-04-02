@@ -10,11 +10,11 @@ function currentMonth() {
   return format(new Date(), 'yyyy-MM')
 }
 
-export function useLogs() {
+export function useLogs(initialMonth?: string) {
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [projects, setProjects] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedMonth, setSelectedMonth] = useState(currentMonth)
+  const [selectedMonth, setSelectedMonth] = useState(initialMonth || currentMonth)
 
   // Fetch logs when month changes
   useEffect(() => {

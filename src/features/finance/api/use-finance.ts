@@ -19,10 +19,11 @@ async function api<T>(url: string, method: string, body?: unknown): Promise<T> {
   return res.json()
 }
 
-export function useFinance() {
-  const [data, setData] = useState<FinanceMonth>(emptyFinanceMonth(currentMonth()))
+export function useFinance(initialMonth?: string) {
+  const init = initialMonth || currentMonth()
+  const [data, setData] = useState<FinanceMonth>(emptyFinanceMonth(init))
   const [loading, setLoading] = useState(true)
-  const [selectedMonth, setSelectedMonth] = useState(currentMonth)
+  const [selectedMonth, setSelectedMonth] = useState(init)
 
   // Fetch on month change
   useEffect(() => {

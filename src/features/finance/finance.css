@@ -861,6 +861,12 @@
 .fn-debt-lent { color: var(--accent); }
 
 /* ─── Debt Compare ──────────────────────────────── */
+.fn-credit-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 .fn-debt-compare-layout {
   display: flex;
   flex-direction: column;

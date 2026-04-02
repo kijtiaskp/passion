@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useMemo, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { addMonths, format } from 'date-fns'
 import { useFinance } from './api/use-finance'
@@ -43,13 +43,31 @@ const TABS = [
 type TabKey = typeof TABS[number]['key']
 
 export function FinanceApp() {
-  const finance = useFinance()
-  const { data, loading, selectedMonth, setSelectedMonth } = finance
   const [searchParams, setSearchParams] = useSearchParams()
+  const monthParam = searchParams.get('month')
+  const finance = useFinance(monthParam ?? undefined)
+  const { data, loading, selectedMonth, setSelectedMonth: setMonthState } = finance
+
+  const setSelectedMonth = useCallback((month: string) => {
+    setMonthState(month)
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev)
+      next.set('month', month)
+      return next
+    }, { replace: true })
+  }, [setMonthState, setSearchParams])
+
   const validTabs = useMemo(() => new Set(TABS.map(t => t.key)), [])
   const tabParam = searchParams.get('tab') as TabKey | null
   const activeTab: TabKey = tabParam && validTabs.has(tabParam) ? tabParam : 'overview'
-  const setActiveTab = (tab: TabKey) => setSearchParams(tab === 'overview' ? {} : { tab }, { replace: true })
+  const setActiveTab = (tab: TabKey) => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev)
+      if (tab === 'overview') next.delete('tab')
+      else next.set('tab', tab)
+      return next
+    }, { replace: true })
+  }
 
   const totalDebt = useMemo(() => {
     const ccDebt = sumBy(data.creditCards, c => c.used ?? 0)
@@ -65,6 +83,9 @@ export function FinanceApp() {
           <button className="month-nav-btn" onClick={() => setSelectedMonth(shiftMonth(selectedMonth, -1))}>◀</button>
           <span className="month-nav-label">{formatMonthLabel(selectedMonth)}</span>
           <button className="month-nav-btn" onClick={() => setSelectedMonth(shiftMonth(selectedMonth, 1))}>▶</button>
+          {selectedMonth !== format(new Date(), 'yyyy-MM') && (
+            <button className="month-nav-btn month-nav-today" onClick={() => setSelectedMonth(format(new Date(), 'yyyy-MM'))}>วันนี้</button>
+          )}
         </div>
       </div>
 
@@ -149,7 +170,7 @@ export function FinanceApp() {
           </div>
         </div>
       ) : (
-        <>
+        <div className="fn-credit-layout">
           <CreditCardSection
             cards={data.creditCards}
             onAdd={finance.addCreditCard}
@@ -162,7 +183,7 @@ export function FinanceApp() {
             onUpdate={finance.updateStudentLoan}
             onDelete={finance.deleteStudentLoan}
           />
-        </>
+        </div>
       )}
     </div>
   )

@@ -192,6 +192,9 @@ export function LogTable({ logs, loading, selectedMonth, onMonthChange, onDelete
             onClick={() => onMonthChange(nextMonth(selectedMonth))}
             disabled={isCurrentMonth}
           >▶</button>
+          {!isCurrentMonth && (
+            <button className="month-nav-btn month-nav-today" onClick={() => onMonthChange(format(new Date(), 'yyyy-MM'))}>วันนี้</button>
+          )}
         </div>
 
         <div className="filter-divider" />

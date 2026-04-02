@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { format } from 'date-fns'
 import { th } from 'date-fns/locale'
 import { sumBy } from '../../utils/format'
@@ -12,7 +13,18 @@ import { ProjectTimeChart } from './components/ProjectTimeChart'
 import './timelog.css'
 
 export function TimelogApp() {
-  const { logs, projects, loading, selectedMonth, setSelectedMonth, addLog, cloneLog, updateLog, deleteLog, addProject } = useLogs()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const monthParam = searchParams.get('month')
+  const { logs, projects, loading, selectedMonth, setSelectedMonth: setMonthState, addLog, cloneLog, updateLog, deleteLog, addProject } = useLogs(monthParam ?? undefined)
+
+  const setSelectedMonth = useCallback((month: string) => {
+    setMonthState(month)
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev)
+      next.set('month', month)
+      return next
+    }, { replace: true })
+  }, [setMonthState, setSearchParams])
   const [clock, setClock] = useState('')
   const [dateLabel, setDateLabel] = useState('')
   const [activeCol, setActiveCol] = useState(0)
