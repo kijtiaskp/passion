@@ -121,6 +121,15 @@ export interface BankBalance {
   group: BalanceGroup
 }
 
+export interface StudentLoan {
+  id: number
+  principal: number
+  interest: number
+  penalty: number
+  overdue: number
+  accountNo?: string
+}
+
 export interface FinanceMonth {
   month: string
   income: {
@@ -132,6 +141,7 @@ export interface FinanceMonth {
   debts: Debt[]
   savings: SavingItem[]
   homeLoan: LoanItem[]
+  studentLoans: StudentLoan[]
   bankBalances: BankBalance[]
   bills: BillInfo[]
 }
@@ -145,6 +155,7 @@ export function emptyFinanceMonth(month: string): FinanceMonth {
     debts: [],
     savings: [],
     homeLoan: [],
+    studentLoans: [],
     bankBalances: [],
     bills: [],
   }

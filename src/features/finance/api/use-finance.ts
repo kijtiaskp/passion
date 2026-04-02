@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { format } from 'date-fns'
-import type { FinanceMonth, CreditCard, Expense, Debt, SavingItem, LoanItem, BankBalance, BillInfo } from '../types'
+import type { FinanceMonth, CreditCard, Expense, Debt, SavingItem, LoanItem, StudentLoan, BankBalance, BillInfo } from '../types'
 import { emptyFinanceMonth } from '../types'
 import mockFinance from '../../../../mock/finance/2026-03.json'
 
@@ -128,6 +128,10 @@ export function useFinance() {
   const updateLoan = (id: number, changes: Partial<LoanItem>) => updateItem<LoanItem>('homeLoan', id, changes)
   const deleteLoan = (id: number) => deleteItem('homeLoan', id)
 
+  const addStudentLoan = (loan: Omit<StudentLoan, 'id'>) => addItem<StudentLoan>('studentLoans', loan)
+  const updateStudentLoan = (id: number, changes: Partial<StudentLoan>) => updateItem<StudentLoan>('studentLoans', id, changes)
+  const deleteStudentLoan = (id: number) => deleteItem('studentLoans', id)
+
   const addBalance = (balance: Omit<BankBalance, 'id'>) => addItem<BankBalance>('bankBalances', balance)
   const updateBalance = (id: number, changes: Partial<BankBalance>) => updateItem<BankBalance>('bankBalances', id, changes)
   const deleteBalance = (id: number) => deleteItem('bankBalances', id)
@@ -141,6 +145,7 @@ export function useFinance() {
     addDebt, updateDebt, deleteDebt,
     addSaving, updateSaving, deleteSaving,
     addLoan, updateLoan, deleteLoan,
+    addStudentLoan, updateStudentLoan, deleteStudentLoan,
     addBalance, updateBalance, deleteBalance,
   }
 }

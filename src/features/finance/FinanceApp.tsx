@@ -10,7 +10,9 @@ import { ExpenseSection } from './components/ExpenseSection'
 import { DebtSection } from './components/DebtSection'
 import { SavingSection } from './components/SavingSection'
 import { HomeLoanSection } from './components/HomeLoanSection'
-import { FinanceTips } from './components/FinanceTips'
+import { StudentLoanSection } from './components/StudentLoanSection'
+import { DebtCompareSection } from './components/DebtCompareSection'
+import { fmt, sumBy } from '../../utils/format'
 import './finance.css'
 
 const THAI_MONTH_NAMES = [
@@ -34,7 +36,8 @@ function shiftMonth(month: string, delta: number) {
 
 const TABS = [
   { key: 'overview', label: 'ภาพรวม' },
-  { key: 'credit', label: 'บัตรเครดิต' },
+  { key: 'credit', label: 'หนี้สิน' },
+  { key: 'debt-compare', label: 'เปรียบเทียบหนี้' },
 ] as const
 
 type TabKey = typeof TABS[number]['key']
@@ -48,6 +51,12 @@ export function FinanceApp() {
   const activeTab: TabKey = tabParam && validTabs.has(tabParam) ? tabParam : 'overview'
   const setActiveTab = (tab: TabKey) => setSearchParams(tab === 'overview' ? {} : { tab }, { replace: true })
 
+  const totalDebt = useMemo(() => {
+    const ccDebt = sumBy(data.creditCards, c => c.used ?? 0)
+    const slDebt = sumBy(data.studentLoans ?? [], l => l.principal + l.interest + l.penalty)
+    return ccDebt + slDebt
+  }, [data.creditCards, data.studentLoans])
+
   return (
     <div className="fn-container">
       <div className="fn-header">
@@ -59,20 +68,30 @@ export function FinanceApp() {
         </div>
       </div>
 
-      <div className="fn-tab-nav">
-        {TABS.map(tab => (
-          <button
-            key={tab.key}
-            className={`fn-tab-btn ${activeTab === tab.key ? 'active' : ''}`}
-            onClick={() => setActiveTab(tab.key)}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div className="fn-tab-row">
+        <div className="fn-tab-nav">
+          {TABS.map(tab => (
+            <button
+              key={tab.key}
+              className={`fn-tab-btn ${activeTab === tab.key ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab.key)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        <div className="fn-total-debt">
+          <span className="fn-total-debt-label">หนี้สินรวม</span>
+          <span className="fn-total-debt-value">{fmt(totalDebt)}</span>
+        </div>
       </div>
 
       {loading ? (
         <div className="fn-loading">กำลังโหลด...</div>
+      ) : activeTab === 'debt-compare' ? (
+        <div className="fn-debt-compare-layout">
+          <DebtCompareSection data={data} selectedMonth={selectedMonth} />
+        </div>
       ) : activeTab === 'overview' ? (
         <div className="fn-layout">
           <div className="fn-layout-left">
@@ -137,7 +156,12 @@ export function FinanceApp() {
             onUpdate={finance.updateCreditCard}
             onDelete={finance.deleteCreditCard}
           />
-          <FinanceTips />
+          <StudentLoanSection
+            loans={data.studentLoans ?? []}
+            onAdd={finance.addStudentLoan}
+            onUpdate={finance.updateStudentLoan}
+            onDelete={finance.deleteStudentLoan}
+          />
         </>
       )}
     </div>

@@ -14,11 +14,12 @@ interface FinanceMonth {
   debts: unknown[]
   savings: unknown[]
   homeLoan: unknown[]
+  studentLoans: unknown[]
   bankBalances: unknown[]
   bills: unknown[]
 }
 
-const COLLECTIONS = ['creditCards', 'expenses', 'debts', 'savings', 'homeLoan', 'bankBalances', 'bills'] as const
+const COLLECTIONS = ['creditCards', 'expenses', 'debts', 'savings', 'homeLoan', 'studentLoans', 'bankBalances', 'bills'] as const
 type Collection = (typeof COLLECTIONS)[number]
 
 function isCollection(key: string): key is Collection {
@@ -40,6 +41,7 @@ function emptyMonth(month: string): FinanceMonth {
     debts: [],
     savings: [],
     homeLoan: [],
+    studentLoans: [],
     bankBalances: [],
     bills: [],
   }
@@ -77,6 +79,44 @@ finance.patch('/:month/income', async (c) => {
   return c.json(data.income)
 })
 
+// POST /api/finance/:month/bills-with-expenses — atomic add bill + expenses
+finance.post('/:month/bills-with-expenses', async (c) => {
+  const month = c.req.param('month')
+  const { bill, expenses } = await c.req.json<{ bill: { id?: number }; expenses: Array<{ id?: number; billId?: number }> }>()
+  const billId = bill.id || Date.now()
+  bill.id = billId
+  const newExpenses = expenses.map((item, i) => ({ ...item, billId, id: item.id || billId + i + 1 }))
+  const data = readMonth(month)
+  ;(data.bills as unknown[]).push(bill)
+  ;(data.expenses as unknown[]).push(...newExpenses)
+  saveMonth(data)
+  return c.json({ bill, expenses: newExpenses })
+})
+
+// DELETE /api/finance/:month/bills-with-expenses/:id — delete bill + its expenses
+finance.delete('/:month/bills-with-expenses/:id', async (c) => {
+  const month = c.req.param('month')
+  const id = Number(c.req.param('id'))
+  const data = readMonth(month)
+  data.bills = (data.bills as Array<{ id: number }>).filter(b => b.id !== id)
+  data.expenses = (data.expenses as Array<{ id: number; billId?: number }>).filter(e => e.billId !== id)
+  saveMonth(data)
+  return c.json({ ok: true })
+})
+
+// PATCH /api/finance/:month/expenses-by-bill/:billId — update all expenses of a bill
+finance.patch('/:month/expenses-by-bill/:billId', async (c) => {
+  const month = c.req.param('month')
+  const billId = Number(c.req.param('billId'))
+  const changes = await c.req.json()
+  const data = readMonth(month)
+  data.expenses = (data.expenses as Array<{ id: number; billId?: number }>).map(
+    e => e.billId === billId ? { ...e, ...changes } : e
+  )
+  saveMonth(data)
+  return c.json({ ok: true })
+})
+
 // POST /api/finance/:month/:collection — add item
 finance.post('/:month/:collection', async (c) => {
   const { month, collection } = c.req.param()
@@ -112,44 +152,6 @@ finance.delete('/:month/:collection/:id', async (c) => {
   const data = readMonth(month)
   const list = data[collection] as Array<{ id: number }>
   data[collection] = list.filter(item => item.id !== id) as never
-  saveMonth(data)
-  return c.json({ ok: true })
-})
-
-// POST /api/finance/:month/bills-with-expenses — atomic add bill + expenses
-finance.post('/:month/bills-with-expenses', async (c) => {
-  const month = c.req.param('month')
-  const { bill, expenses } = await c.req.json<{ bill: { id?: number }; expenses: Array<{ id?: number; billId?: number }> }>()
-  const billId = bill.id || Date.now()
-  bill.id = billId
-  const newExpenses = expenses.map((item, i) => ({ ...item, billId, id: item.id || billId + i + 1 }))
-  const data = readMonth(month)
-  ;(data.bills as unknown[]).push(bill)
-  ;(data.expenses as unknown[]).push(...newExpenses)
-  saveMonth(data)
-  return c.json({ bill, expenses: newExpenses })
-})
-
-// DELETE /api/finance/:month/bills-with-expenses/:id — delete bill + its expenses
-finance.delete('/:month/bills-with-expenses/:id', async (c) => {
-  const month = c.req.param('month')
-  const id = Number(c.req.param('id'))
-  const data = readMonth(month)
-  data.bills = (data.bills as Array<{ id: number }>).filter(b => b.id !== id)
-  data.expenses = (data.expenses as Array<{ id: number; billId?: number }>).filter(e => e.billId !== id)
-  saveMonth(data)
-  return c.json({ ok: true })
-})
-
-// PATCH /api/finance/:month/expenses-by-bill/:billId — update all expenses of a bill
-finance.patch('/:month/expenses-by-bill/:billId', async (c) => {
-  const month = c.req.param('month')
-  const billId = Number(c.req.param('billId'))
-  const changes = await c.req.json()
-  const data = readMonth(month)
-  data.expenses = (data.expenses as Array<{ id: number; billId?: number }>).map(
-    e => e.billId === billId ? { ...e, ...changes } : e
-  )
   saveMonth(data)
   return c.json({ ok: true })
 })

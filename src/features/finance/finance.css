@@ -28,6 +28,34 @@
   background: rgba(0, 255, 136, 0.07);
 }
 
+.fn-tab-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.fn-tab-row .fn-tab-nav {
+  margin-bottom: 0;
+}
+
+.fn-total-debt {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.fn-total-debt-label {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.5px;
+}
+.fn-total-debt-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ef4444;
+}
+
 /* ─── Container ─────────────────────────────────── */
 .fn-container {
   position: relative;
@@ -513,6 +541,7 @@
   display: block;
 }
 
+.fn-num-danger,
 .fn-editable.fn-num.fn-num-danger {
   color: #ef4444;
 }
@@ -830,6 +859,125 @@
 
 .fn-debt-owe { color: var(--danger); }
 .fn-debt-lent { color: var(--accent); }
+
+/* ─── Debt Compare ──────────────────────────────── */
+.fn-debt-compare-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.fn-compare-months {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+}
+
+.fn-compare-table thead th {
+  text-align: right;
+}
+.fn-compare-table thead th:first-child {
+  text-align: left;
+}
+.fn-compare-table tbody td,
+.fn-compare-table tfoot td {
+  text-align: right;
+}
+.fn-compare-table tbody td:first-child,
+.fn-compare-table tfoot td:first-child {
+  text-align: left;
+}
+
+.fn-compare-total-diff {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.fn-compare-expandable {
+  cursor: pointer;
+}
+.fn-compare-expandable:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.fn-compare-arrow {
+  font-size: 9px;
+  margin-right: 6px;
+  display: inline-block;
+  transition: transform 0.2s;
+}
+.fn-compare-arrow.expanded {
+  transform: rotate(180deg);
+}
+
+.fn-compare-sub-row td {
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
+  font-size: 12px;
+  color: var(--muted);
+}
+.fn-compare-sub-label {
+  padding-left: 20px !important;
+}
+
+.fn-payment-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.fn-payment-progress-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.fn-payment-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.fn-payment-progress-text {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.fn-compare-empty {
+  text-align: center;
+  padding: 32px 20px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.fn-compare-summary {
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.fn-compare-good {
+  background: rgba(0, 255, 136, 0.08);
+  color: var(--accent);
+  border: 1px solid rgba(0, 255, 136, 0.2);
+}
+
+.fn-compare-bad {
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
 
 /* ─── Side by Side ───────────────────────────────── */
 .fn-side-by-side {
@@ -1161,164 +1309,6 @@ td.fn-expense-total {
   cursor: pointer;
 }
 
-/* ─── Finance Tips ───────────────────────────────── */
-.fn-tips-section {
-  margin-top: 24px;
-}
-
-.fn-tips-date {
-  font-size: 12px;
-  color: var(--muted);
-  margin-bottom: 12px;
-  padding: 0 4px;
-}
-
-.fn-tips-tags {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
-}
-
-.fn-tip-tag {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border);
-  color: var(--muted);
-  border-radius: 16px;
-  padding: 4px 12px;
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.fn-tip-tag:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-.fn-tip-tag.active {
-  background: rgba(0, 255, 136, 0.12);
-  border-color: var(--accent);
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.fn-tips-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.fn-tip-card {
-  background: rgba(30, 30, 46, 0.4);
-  border-radius: 8px;
-  overflow: hidden;
-  transition: background 0.15s;
-}
-.fn-tip-card.open {
-  background: rgba(30, 30, 46, 0.6);
-}
-
-.fn-tip-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  cursor: pointer;
-  transition: background 0.1s;
-}
-.fn-tip-header:hover {
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.fn-tip-num {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--accent);
-  background: rgba(0, 255, 136, 0.1);
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.fn-tip-title {
-  flex: 1;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.fn-tip-arrow {
-  font-size: 10px;
-  color: var(--muted);
-  flex-shrink: 0;
-}
-
-.fn-tip-body {
-  padding: 0 14px 14px;
-  border-top: 1px solid var(--border);
-}
-
-.fn-tip-image {
-  margin: 12px 0 8px;
-  border-radius: 8px;
-  overflow: hidden;
-  max-height: 180px;
-}
-.fn-tip-image img {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-  display: block;
-  border-radius: 8px;
-  opacity: 0.85;
-  transition: opacity 0.2s;
-}
-.fn-tip-image img:hover {
-  opacity: 1;
-}
-
-.fn-tip-content {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 13px;
-  line-height: 1.7;
-  color: var(--text);
-  white-space: pre-wrap;
-  word-break: break-word;
-  margin: 12px 0;
-  background: none;
-  border: none;
-  padding: 0;
-}
-
-.fn-tip-source {
-  font-size: 12px;
-  margin-bottom: 8px;
-}
-.fn-tip-source a {
-  color: var(--accent);
-  text-decoration: none;
-}
-.fn-tip-source a:hover {
-  text-decoration: underline;
-}
-
-.fn-tip-tags-inline {
-  display: flex;
-  gap: 6px;
-}
-
-.fn-tip-tag-badge {
-  font-size: 11px;
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--muted);
-  padding: 2px 8px;
-  border-radius: 10px;
-}
-
 /* ─── Date Group Headers ─────────────────────────── */
 .fn-date-divider {
   height: 1px;
@@ -1487,4 +1477,69 @@ td.fn-expense-total {
   font-size: 12px;
   min-width: 100px;
   max-width: 160px;
+}
+
+/* ─── Student Loan (กยศ.) ────────────────────────── */
+.fn-sl-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.fn-sl-account {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.fn-sl-table {
+  width: 100%;
+  max-width: 360px;
+}
+
+.fn-sl-table td {
+  padding: 6px 0;
+}
+
+.fn-sl-label {
+  font-size: 13px;
+  color: var(--muted);
+  width: 100px;
+}
+
+.fn-sl-value {
+  text-align: right;
+  font-size: 14px;
+}
+
+.fn-sl-total-row td {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.fn-sl-total-row .fn-num {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.fn-num-warning,
+.fn-editable.fn-num.fn-num-warning {
+  color: #f59e0b;
+}
+
+.fn-sl-delete {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 12px;
+  padding: 2px 8px;
+}
+
+.fn-sl-add {
+  flex-wrap: wrap;
 }
